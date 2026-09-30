@@ -1,0 +1,28 @@
+# @owner SSJ
+name: front-ci
+on:
+  pull_request:
+    branches: [dev, main]
+concurrency:
+  group: front-ci-${{ github.head_ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      # LayoutProps 등 Next 전역 타입(.next/types)을 tsc 전에 생성
+      - run: npx next typegen
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          BACKEND_ORIGIN: http://localhost:8080
+          NEXT_PUBLIC_UPLOAD_BASE_URL: http://localhost:8080
+          NEXT_PUBLIC_WS_URL: ws://localhost:8080/ws
