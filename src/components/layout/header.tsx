@@ -17,18 +17,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ROLE_LABEL } from '@/config/badge';
 import { logout } from '@/lib/api/auth';
 import { useAuth } from '@/lib/auth/use-auth';
-import type { Role } from '@/types/auth';
+import { AvailabilityToggle } from './availability-toggle';
 import { NotificationBellSlot } from './notification-bell-slot';
 import { SidebarNav } from './sidebar-nav';
-
-const ROLE_LABEL: Record<Role, string> = {
-  CUSTOMER: '고객',
-  AGENT: '상담원',
-  LEAD: '팀장',
-  ADMIN: '관리자',
-};
 
 export function Header() {
   const { status, member } = useAuth();
@@ -70,6 +64,7 @@ export function Header() {
 
         {status === 'authenticated' && member && (
           <>
+            {member.role === 'AGENT' && <AvailabilityToggle available={member.available} />}
             <NotificationBellSlot />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

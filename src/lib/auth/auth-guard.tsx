@@ -7,11 +7,14 @@ import { type ReactNode, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Role } from '@/types/auth';
+import { getGuestTicketId } from '@/lib/api/client';
 import { useAuth } from './use-auth';
 
 interface AuthGuardProps {
   /** 없으면 로그인만 확인. 역할 계층은 없으므로 허용 역할을 모두 적는다 (config/menu.ts 와 동일) */
   roles?: readonly Role[];
+  /** 이 티켓의 Guest 토큰이 있으면 비로그인이어도 통과 (CU-07) */
+  guestTicketId?: number;
   children: ReactNode;
 }
 
@@ -19,18 +22,22 @@ interface AuthGuardProps {
  * 클라이언트 라우트 가드 (FR-AUTH-04). 1차 확인은 proxy.ts(Refresh 쿠키 유무), 최종 판단은 여기서.
  * 세션 복원 중 → 스켈레톤, 비로그인 → /login?next=현재경로, 역할 불일치 → 403
  */
-export function AuthGuard({ roles, children }: AuthGuardProps) {
+export function AuthGuard({ roles, guestTicketId, children }: AuthGuardProps) {
   const { status, member } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const isGuest =
+    status === 'anonymous' && guestTicketId !== undefined && getGuestTicketId() === guestTicketId;
 
   useEffect(() => {
-    if (status === 'anonymous') {
+    if (status === 'anonymous' && !isGuest) {
       // useSearchParams 대신 window 를 써서 Suspense 경계 없이 쿼리까지 보존
       const next = pathname + window.location.search;
       router.replace(`/login?next=${encodeURIComponent(next)}`);
     }
-  }, [status, pathname, router]);
+  }, [status, isGuest, pathname, router]);
+
+  if (isGuest) return children;
 
   if (status !== 'authenticated' || !member) {
     return (

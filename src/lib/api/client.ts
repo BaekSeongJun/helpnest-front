@@ -61,9 +61,35 @@ export function setSession(auth: AuthResponse): void {
   publish({ status: 'authenticated', member: auth.member });
 }
 
+/** 내 정보가 바뀌었을 때(상담 가능 토글 등) 토큰은 그대로 두고 회원만 교체 */
+export function updateSessionMember(member: Member): void {
+  if (snapshot.status === 'authenticated') publish({ status: 'authenticated', member });
+}
+
 export function clearSession(): void {
   accessToken = null;
   publish({ status: 'anonymous', member: null });
+}
+
+// ---- 비회원 Guest 토큰 (CU-05 → CU-07). 메모리만 — 새로고침하면 다시 조회해야 한다 ----
+
+let guestToken: string | null = null;
+let guestTicketId: number | null = null;
+
+/** 회원 세션이 없을 때만 Authorization 에 쓰인다. 티켓 1건 한정 (JwtProvider.guestTicketId) */
+export function setGuestSession(token: string, ticketId: number): void {
+  guestToken = token;
+  guestTicketId = ticketId;
+}
+
+export function clearGuestSession(): void {
+  guestToken = null;
+  guestTicketId = null;
+}
+
+/** Guest 토큰으로 볼 수 있는 티켓 id. 없으면 null */
+export function getGuestTicketId(): number | null {
+  return guestTicketId;
 }
 
 let refreshing: Promise<boolean> | null = null;
@@ -98,11 +124,17 @@ export function refreshSession(): Promise<boolean> {
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
   /** 객체는 JSON 으로 직렬화, FormData 는 그대로 전송 */
   body?: unknown;
+  /** 기본 상대 /api. 첨부 업로드만 백엔드 직접 호출 (02 §2.1, NEXT_PUBLIC_UPLOAD_BASE_URL) */
+  baseUrl?: string;
 }
 
-function send(path: string, { body, headers, ...init }: RequestOptions): Promise<Response> {
+function send(
+  path: string,
+  { body, headers, baseUrl = '/api', ...init }: RequestOptions,
+): Promise<Response> {
   const h = new Headers(headers);
-  if (accessToken) h.set('Authorization', `Bearer ${accessToken}`);
+  const token = accessToken ?? guestToken;
+  if (token) h.set('Authorization', `Bearer ${token}`);
   let payload: BodyInit | undefined;
   if (body instanceof FormData) {
     payload = body;
@@ -110,7 +142,12 @@ function send(path: string, { body, headers, ...init }: RequestOptions): Promise
     h.set('Content-Type', 'application/json');
     payload = JSON.stringify(body);
   }
-  return fetch(`/api${path}`, { ...init, headers: h, body: payload, credentials: 'same-origin' });
+  return fetch(`${baseUrl}${path}`, {
+    ...init,
+    headers: h,
+    body: payload,
+    credentials: 'same-origin',
+  });
 }
 
 async function parse<T>(res: Response): Promise<T> {
@@ -123,15 +160,32 @@ async function parse<T>(res: Response): Promise<T> {
   );
 }
 
+/** 토큰 첨부 + 401 처리(Guest 만료 정리, 회원은 Refresh 1회 후 재시도)까지 끝낸 응답 */
+async function request(path: string, options: RequestOptions): Promise<Response> {
+  const usedGuest = !accessToken && !!guestToken;
+  const res = await send(path, options);
+  if (res.status !== 401) return res;
+  // Guest 토큰 만료(30분)는 Refresh 로 되살릴 수 없다 — 버리고 조회 화면에서 다시 받게 한다
+  if (usedGuest) {
+    clearGuestSession();
+    return res;
+  }
+  // /auth/* 의 401 은 로그인 실패·Refresh 만료 자체라 재발급 대상이 아니다
+  if (!path.startsWith('/auth/') && (await refreshSession())) return send(path, options);
+  return res;
+}
+
 /**
  * @param path `/api` 뒤 경로. 예: `/members/me`
  * @returns ApiResponse 의 data. 실패하면 ApiError
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const res = await send(path, options);
-  // /auth/* 의 401 은 로그인 실패·Refresh 만료 자체라 재발급 대상이 아니다
-  if (res.status === 401 && !path.startsWith('/auth/') && (await refreshSession())) {
-    return parse<T>(await send(path, options));
-  }
-  return parse<T>(res);
+  return parse<T>(await request(path, options));
+}
+
+/** 파일 다운로드용. 실패 응답(JSON)은 apiFetch 와 같은 ApiError 로 */
+export async function apiFetchBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+  const res = await request(path, options);
+  if (!res.ok) await parse<never>(res);
+  return res.blob();
 }
