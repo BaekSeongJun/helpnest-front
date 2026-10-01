@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { EmptyState, LoadingSkeleton } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { guestLogin } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
+import { useAuth } from '@/lib/auth/use-auth';
 
 const schema = z.object({
   ticketNo: z
@@ -26,8 +28,30 @@ const schema = z.object({
 
 type LookupValues = z.infer<typeof schema>;
 
-/** 비회원 문의 조회 (CU-05). 성공하면 Guest 토큰(메모리)으로 상세(CU-07)로 이동 */
+/**
+ * 비회원 문의 조회 (CU-05). 성공하면 Guest 토큰(메모리)으로 상세(CU-07)로 이동.
+ * 로그인 중에는 막는다 — 회원 토큰이 우선 쓰여 상세·첨부·답글 권한이 어긋나기 때문
+ */
 export function LookupForm() {
+  const { status } = useAuth();
+  if (status === 'loading') return <LoadingSkeleton variant="detail" />;
+  if (status === 'authenticated') {
+    return (
+      <EmptyState
+        title="로그인 중에는 비회원 조회를 할 수 없어요"
+        description="회원으로 남긴 문의는 내 문의에서 확인하고, 비회원 문의는 로그아웃한 뒤 조회해 주세요."
+        action={
+          <Button asChild>
+            <Link href="/my/inquiries">내 문의</Link>
+          </Button>
+        }
+      />
+    );
+  }
+  return <LookupFormBody />;
+}
+
+function LookupFormBody() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
