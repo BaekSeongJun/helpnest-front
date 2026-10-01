@@ -16,14 +16,3 @@ export interface AiResult {
   confidence: number | null;
   status: 'SUCCESS' | 'FAILED';
 }
-
-// ponytail: 08 §6 은 한글 라벨을 config/badge.ts 에만 두도록 한다 — 유형 라벨 추가 CR 머지되면 그쪽으로 교체
-export const CATEGORY_LABEL: Record<TicketCategory, string> = {
-  DELIVERY: '배송',
-  REFUND: '환불',
-  EXCHANGE: '교환',
-  PAYMENT: '결제',
-  ACCOUNT: '계정',
-  SERVICE_ERROR: '서비스 오류',
-  ETC: '기타',
-};

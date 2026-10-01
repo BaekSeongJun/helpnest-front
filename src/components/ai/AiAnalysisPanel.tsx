@@ -11,9 +11,10 @@ import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/sta
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CATEGORY_LABEL } from '@/config/badge';
 import { getAiResult, reclassify } from '@/lib/api/ai';
 import { formatPercent } from '@/lib/format';
-import { type AiResult, CATEGORY_LABEL } from '@/types/ai';
+import type { AiResult } from '@/types/ai';
 
 export const aiResultKey = (ticketId: number) => ['ai-result', ticketId] as const;
 
