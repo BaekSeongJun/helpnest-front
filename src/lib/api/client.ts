@@ -61,6 +61,11 @@ export function setSession(auth: AuthResponse): void {
   publish({ status: 'authenticated', member: auth.member });
 }
 
+/** 내 정보가 바뀌었을 때(상담 가능 토글 등) 토큰은 그대로 두고 회원만 교체 */
+export function updateSessionMember(member: Member): void {
+  if (snapshot.status === 'authenticated') publish({ status: 'authenticated', member });
+}
+
 export function clearSession(): void {
   accessToken = null;
   publish({ status: 'anonymous', member: null });
