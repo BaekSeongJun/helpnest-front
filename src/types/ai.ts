@@ -16,3 +16,19 @@ export interface AiResult {
   confidence: number | null;
   status: 'SUCCESS' | 'FAILED';
 }
+
+/** AI-2 초안 참고 자료. label: FAQ 질문 / 과거 답변 앞 40자 */
+export interface DraftReference {
+  type: 'FAQ' | 'REPLY';
+  id: number;
+  label: string;
+}
+
+/** POST /api/console/tickets/{id}/ai/drafts */
+export interface AiDraft {
+  draftId: number;
+  content: string;
+  references: DraftReference[];
+  model: string | null;
+  createdAt: string;
+}
