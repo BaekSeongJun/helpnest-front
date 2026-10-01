@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FileUploader } from '@/components/common/file-uploader';
+import { FaqSuggest } from '@/components/faq/faq-suggest';
 import { PageHeader } from '@/components/common/page-header';
 import { LoadingSkeleton } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,7 @@ function InquiryFormBody({ isGuest }: { isGuest: boolean }) {
     defaultValues: { title: '', content: '', guestName: '', guestEmail: '', guestPassword: '' },
   });
   const contentLength = useWatch({ control, name: 'content' })?.length ?? 0;
+  const title = useWatch({ control, name: 'title' }) ?? '';
 
   async function onSubmit(values: InquiryValues) {
     setServerError(null);
@@ -141,6 +143,7 @@ function InquiryFormBody({ isGuest }: { isGuest: boolean }) {
               <Input id="inquiry-title" aria-invalid={!!errors.title} {...register('title')} />
               <FieldError errors={[errors.title]} />
             </Field>
+            <FaqSuggest title={title} />
 
             <Field data-invalid={!!errors.content}>
               <FieldLabel htmlFor="inquiry-content">내용</FieldLabel>
