@@ -61,6 +61,11 @@ export function setSession(auth: AuthResponse): void {
   publish({ status: 'authenticated', member: auth.member });
 }
 
+/** 내 정보가 바뀌었을 때(상담 가능 토글 등) 토큰은 그대로 두고 회원만 교체 */
+export function updateSessionMember(member: Member): void {
+  if (snapshot.status === 'authenticated') publish({ status: 'authenticated', member });
+}
+
 export function clearSession(): void {
   accessToken = null;
   publish({ status: 'anonymous', member: null });
@@ -98,9 +103,14 @@ export function refreshSession(): Promise<boolean> {
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
   /** 객체는 JSON 으로 직렬화, FormData 는 그대로 전송 */
   body?: unknown;
+  /** 기본 상대 /api. 첨부 업로드만 백엔드 직접 호출 (02 §2.1, NEXT_PUBLIC_UPLOAD_BASE_URL) */
+  baseUrl?: string;
 }
 
-function send(path: string, { body, headers, ...init }: RequestOptions): Promise<Response> {
+function send(
+  path: string,
+  { body, headers, baseUrl = '/api', ...init }: RequestOptions,
+): Promise<Response> {
   const h = new Headers(headers);
   if (accessToken) h.set('Authorization', `Bearer ${accessToken}`);
   let payload: BodyInit | undefined;
@@ -110,7 +120,12 @@ function send(path: string, { body, headers, ...init }: RequestOptions): Promise
     h.set('Content-Type', 'application/json');
     payload = JSON.stringify(body);
   }
-  return fetch(`/api${path}`, { ...init, headers: h, body: payload, credentials: 'same-origin' });
+  return fetch(`${baseUrl}${path}`, {
+    ...init,
+    headers: h,
+    body: payload,
+    credentials: 'same-origin',
+  });
 }
 
 async function parse<T>(res: Response): Promise<T> {
