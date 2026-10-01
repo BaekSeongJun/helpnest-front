@@ -5,13 +5,13 @@
 //   CS-02(콘솔): <TicketTimeline replies={ticket.replies} showInternal />
 // 본문은 PlainText(백성준)로만 그린다. dangerouslySetInnerHTML 금지 — 입력한 HTML 은 글자 그대로 보인다.
 
-import { Paperclip } from 'lucide-react';
 import { PlainText } from '@/components/common/plain-text';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import type { TicketAttachment, TicketReplyResponse, WriterType } from '@/types/ticket';
+import type { TicketReplyResponse, WriterType } from '@/types/ticket';
+import { TicketAttachments } from './TicketAttachments';
 
 interface TicketTimelineProps {
   replies: TicketReplyResponse[];
@@ -84,7 +84,7 @@ export function TicketTimeline({
                 <Badge className="bg-warning text-warning-foreground mb-1.5">내부 메모</Badge>
               )}
               <PlainText text={reply.content} />
-              {reply.attachments.length > 0 && <AttachmentList items={reply.attachments} />}
+              <TicketAttachments items={reply.attachments} className="mt-2" />
             </div>
           </li>
         ),
@@ -105,19 +105,5 @@ function TimeLabel({ at }: { at: string }) {
       </TooltipTrigger>
       <TooltipContent>{formatDateTime(at)}</TooltipContent>
     </Tooltip>
-  );
-}
-
-// TODO(PMJ): 백성준 FileList(08 §5.2) 머지 후 교체 — 지금은 파일명만 보여준다
-function AttachmentList({ items }: { items: TicketAttachment[] }) {
-  return (
-    <ul className="text-muted-foreground mt-2 space-y-0.5 text-xs">
-      {items.map((file) => (
-        <li key={file.attachmentId} className="flex items-center gap-1">
-          <Paperclip className="size-3 shrink-0" aria-hidden />
-          {file.originalName}
-        </li>
-      ))}
-    </ul>
   );
 }
