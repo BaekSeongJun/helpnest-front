@@ -17,7 +17,7 @@ import type { Role } from '@/types/auth';
 import { type LoginValues, loginSchema } from './schema';
 
 /** ?next= 가 같은 사이트 경로일 때만 사용 (//evil.com 같은 외부 이동 차단), 없으면 역할별 기본 화면 */
-function redirectTarget(role: Role) {
+export function redirectTarget(role: Role) {
   const next = new URLSearchParams(window.location.search).get('next');
   if (next?.startsWith('/') && !next.startsWith('//')) return next;
   return role === 'CUSTOMER' ? '/' : '/console/tickets';
