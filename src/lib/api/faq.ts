@@ -21,6 +21,11 @@ export function getFaqs(query: FaqQuery = {}): Promise<PageResponse<Faq>> {
   return apiFetch<PageResponse<Faq>>(`/faqs${toQuery(query)}`);
 }
 
+/** 접수 폼 추천 (FR-INQ-05). 공개 글 조회수 상위 3건, q 가 2자 미만이면 빈 배열 */
+export function suggestFaqs(q: string): Promise<Faq[]> {
+  return apiFetch<Faq[]>(`/faqs/suggest?${new URLSearchParams({ q })}`);
+}
+
 /** 조회수 +1. 아코디언을 열 때 부른다 */
 export function getFaq(faqId: number): Promise<Faq> {
   return apiFetch<Faq>(`/faqs/${faqId}`);
@@ -50,4 +55,5 @@ export const faqKeys = {
   all: ['faqs'] as const,
   list: (query: FaqQuery) => ['faqs', 'list', query] as const,
   admin: (query: FaqQuery) => ['faqs', 'admin', query] as const,
+  suggest: (q: string) => ['faqs', 'suggest', q] as const,
 };
