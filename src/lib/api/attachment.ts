@@ -1,6 +1,6 @@
 // @owner BSJ
 // 첨부 API (docs/04 §3). 업로드는 Next 프록시를 거치지 않고 백엔드로 직접 보낸다 (02 §2.1 — 10MB 본문 프록시 회피)
-import { apiFetch } from './client';
+import { apiFetch, apiFetchBlob } from './client';
 
 export interface UploadedAttachment {
   attachmentId: number;
@@ -42,4 +42,18 @@ export function uploadAttachments(files: File[]): Promise<UploadedAttachment[]> 
     body: form,
     baseUrl: UPLOAD_BASE,
   });
+}
+
+/**
+ * 첨부 다운로드. 링크로는 Authorization 헤더를 못 붙이므로 받아서 저장시킨다.
+ * ponytail: 파일 전체를 메모리에 올림(≤10MB 라 허용). prod 302(S3 presigned)는 S3 CORS 설정 필요
+ */
+export async function downloadAttachment(attachmentId: number, fileName: string): Promise<void> {
+  const blob = await apiFetchBlob(`/attachments/${attachmentId}/download`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
 }
