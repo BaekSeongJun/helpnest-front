@@ -20,6 +20,21 @@ export async function updateAvailability(available: boolean): Promise<Member> {
   return member;
 }
 
+/** 내 정보 수정 (CU-10). phone 을 비우면 삭제. 헤더 등이 보는 세션 회원도 갱신 */
+export async function updateProfile(req: { name: string; phone: string }): Promise<Member> {
+  const member = await apiFetch<Member>('/members/me', { method: 'PATCH', body: req });
+  updateSessionMember(member);
+  return member;
+}
+
+/** 비밀번호 변경 (CU-10). 서버가 Refresh 를 모두 폐기하므로 호출 쪽에서 로그아웃 처리 */
+export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  return apiFetch<void>('/members/me/password', {
+    method: 'PATCH',
+    body: { currentPassword, newPassword },
+  });
+}
+
 // ---- 관리 (AD-01, ADMIN) ----
 
 export function getAdminMembers({ role, status, page }: AdminMemberQuery = {}): Promise<
