@@ -5,13 +5,13 @@
 //   CS-02(콘솔): <TicketTimeline replies={ticket.replies} showInternal />
 // 본문은 PlainText(백성준)로만 그린다. dangerouslySetInnerHTML 금지 — 입력한 HTML 은 글자 그대로 보인다.
 
+import { FileList } from '@/components/common/file-list';
 import { PlainText } from '@/components/common/plain-text';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { TicketReplyResponse, WriterType } from '@/types/ticket';
-import { TicketAttachments } from './TicketAttachments';
 
 interface TicketTimelineProps {
   replies: TicketReplyResponse[];
@@ -84,7 +84,7 @@ export function TicketTimeline({
                 <Badge className="bg-warning text-warning-foreground mb-1.5">내부 메모</Badge>
               )}
               <PlainText text={reply.content} />
-              <TicketAttachments items={reply.attachments} className="mt-2" />
+              <FileList attachments={reply.attachments} className="mt-2" />
             </div>
           </li>
         ),

@@ -4,13 +4,13 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { FileList } from '@/components/common/file-list';
 import { PlainText } from '@/components/common/plain-text';
 import { PageHeader } from '@/components/common/page-header';
 import { PriorityBadge, SentimentBadge, StatusBadge } from '@/components/common/badges';
 import { ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { ReplyEditor } from '@/components/ticket/ReplyEditor';
 import type { ReplyValues } from '@/components/ticket/schema';
-import { TicketAttachments } from '@/components/ticket/TicketAttachments';
 import { TicketHistoryList } from '@/components/ticket/TicketHistoryList';
 import { TicketSidePanel } from '@/components/ticket/TicketSidePanel';
 import { TicketTimeline } from '@/components/ticket/TicketTimeline';
@@ -107,7 +107,7 @@ export function TicketDetailView({ ticketId }: { ticketId: number }) {
             </CardHeader>
             <CardContent className="space-y-3">
               <PlainText text={ticket.content} />
-              <TicketAttachments items={ticket.attachments} />
+              <FileList attachments={ticket.attachments} />
             </CardContent>
           </Card>
 
