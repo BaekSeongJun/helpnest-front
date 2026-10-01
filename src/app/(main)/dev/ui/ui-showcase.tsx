@@ -19,6 +19,8 @@ import { PlainText } from '@/components/common/plain-text';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { TemplatePicker } from '@/components/template/template-picker';
 import { PRIORITY_BADGE, TICKET_STATUS_BADGE } from '@/config/badge';
 import { formatDateTime } from '@/lib/format';
 
@@ -69,6 +71,7 @@ export function UiShowcase() {
   const [page, setPage] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [tableState, setTableState] = useState<'data' | 'loading' | 'empty'>('data');
+  const [reply, setReply] = useState('');
 
   const filtered = SAMPLE.filter((t) => t.title.includes(keyword));
   const pageData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -209,6 +212,30 @@ export function UiShowcase() {
       <Section title="PlainText (이스케이프 + 줄바꿈 + 링크)">
         <div className="bg-card rounded-lg border p-4">
           <PlainText text={XSS_SAMPLE} />
+        </div>
+      </Section>
+
+      <Section title="TemplatePicker (AGENT+ 로그인 필요, 박민재 ReplyEditor 에서 사용)">
+        <div className="bg-card space-y-2 rounded-lg border p-4">
+          <TemplatePicker
+            category="REFUND"
+            customerName="홍길동"
+            ticketNo="HN-20261002-000123"
+            onSelect={(text) =>
+              setReply((prev) =>
+                prev
+                  ? `${prev}
+${text}`
+                  : text,
+              )
+            }
+          />
+          <Textarea
+            rows={6}
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            aria-label="답변 미리보기"
+          />
         </div>
       </Section>
     </div>
