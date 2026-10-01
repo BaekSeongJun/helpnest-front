@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TICKET_STATUS_BADGE } from '@/config/badge';
-import { getAdminMembers, memberKeys } from '@/lib/api/member';
+import { consoleAgentKeys, getConsoleAgents } from '@/lib/api/console-agent';
 import { assignTicket, autoAssignTicket, ticketKeys, updateTicketStatus } from '@/lib/api/ticket';
 import { useAuth } from '@/lib/auth/use-auth';
 import { formatDateTime } from '@/lib/format';
@@ -86,14 +86,14 @@ export function TicketSidePanel({ ticket }: { ticket: TicketResponse }) {
 
   /**
    * 상담원 목록은 백성준 API 다. 호출만 한다 (01 §4.1-5).
-   * ADMIN 전용이라 LEAD 는 403 을 받는다 — 실패하면 수동 배정을 막고 자동 배정만 남긴다.
-   * retry 를 끄는 이유는 403 은 다시 요청해도 같기 때문이다.
+   * /admin/members(ADMIN 전용) 가 아니라 /console/agents 를 쓴다 — 배정은 LEAD+ 인데
+   * 관리 API 는 ADMIN 전용이라 LEAD 가 403 을 받던 문제를 back CR #44 로 풀었다.
+   * 실패해도 화면이 멈추지 않게 자동 배정만 남기는 열화 경로는 그대로 둔다.
    */
   const agents = useQuery({
-    queryKey: memberKeys.admin({ role: 'AGENT' }),
-    queryFn: () => getAdminMembers({ role: 'AGENT' }),
+    queryKey: consoleAgentKeys.all,
+    queryFn: getConsoleAgents,
     enabled: canAssign,
-    retry: false,
   });
 
   function submitStatus() {
@@ -182,9 +182,10 @@ export function TicketSidePanel({ ticket }: { ticket: TicketResponse }) {
                     <SelectValue placeholder={agents.isPending ? '불러오는 중…' : '상담원 선택'} />
                   </SelectTrigger>
                   <SelectContent>
-                    {agents.data?.content.map((agent) => (
+                    {agents.data?.map((agent) => (
                       <SelectItem key={agent.memberId} value={String(agent.memberId)}>
-                        {agent.name}
+                        {agent.name} · 처리 중 {agent.activeCount}건
+                        {/* 상담 불가도 목록에 있다 — 재배정은 가용 여부와 무관(back #45) */}
                         {!agent.available && ' (상담 불가)'}
                       </SelectItem>
                     ))}
