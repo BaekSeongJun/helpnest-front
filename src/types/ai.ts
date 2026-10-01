@@ -1,12 +1,10 @@
 // @owner SSJ
-// AI 분류 타입 — 백엔드 enum·DTO 와 같은 이름·값 (docs/03 §2.1, 04 §12)
+// AI 분류 타입 — 백엔드 DTO 와 같은 이름·값 (04 §12). 값 집합은 types/ticket.ts(박민재) 재사용
 
-export type TicketCategory =
-  'DELIVERY' | 'REFUND' | 'EXCHANGE' | 'PAYMENT' | 'ACCOUNT' | 'SERVICE_ERROR' | 'ETC';
+import type { Sentiment, TicketCategory, TicketPriority } from './ticket';
 
-export type Urgency = 'URGENT' | 'HIGH' | 'NORMAL' | 'LOW';
-
-export type Sentiment = 'NEGATIVE' | 'NEUTRAL' | 'POSITIVE';
+/** LLM 판정 긴급도. 값 집합은 priority 와 같고, 감정 보정 전 원본이다 (docs/05 §3.1 5번) */
+export type Urgency = TicketPriority;
 
 /** GET /api/console/tickets/{id}/ai. FAILED 면 분류값이 null. 결과 자체가 없으면(분류 중) 응답 data 가 null */
 export interface AiResult {
