@@ -2,26 +2,25 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { StatusBadge } from '@/components/common/badges';
+import { FileList } from '@/components/common/file-list';
 import { FileUploader } from '@/components/common/file-uploader';
 import { PlainText } from '@/components/common/plain-text';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
+import { TicketTimeline } from '@/components/ticket/TicketTimeline';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FieldError } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import { CATEGORY_LABEL } from '@/config/badge';
-import { downloadAttachment, uploadAttachments } from '@/lib/api/attachment';
+import { uploadAttachments } from '@/lib/api/attachment';
 import { ApiError } from '@/lib/api/client';
 import { createCustomerReply, getTicket, ticketKeys } from '@/lib/api/ticket';
 import { AuthGuard } from '@/lib/auth/auth-guard';
 import { formatDateTime } from '@/lib/format';
-import { cn } from '@/lib/utils';
-import type { TicketAttachment, TicketReplyResponse, WriterType } from '@/types/ticket';
 
 const CONTENT_MAX = 5000;
 
@@ -79,14 +78,16 @@ function InquiryDetailBody({ ticketId }: { ticketId: number }) {
       <Card>
         <CardContent className="space-y-4">
           <PlainText text={data.content} />
-          <AttachmentList attachments={data.attachments} />
+          <FileList attachments={data.attachments} />
         </CardContent>
       </Card>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">답변</h2>
-        {/* ponytail: 박민재 TicketTimeline 이 나오면 이 목록을 <TicketTimeline replies={data.replies} /> 로 교체 */}
-        <ReplyList replies={data.replies} />
+        <TicketTimeline
+          replies={data.replies}
+          emptyText="아직 답변이 없어요. 답변이 등록되면 알려 드릴게요."
+        />
       </section>
 
       {data.status === 'CLOSED' ? (
@@ -101,78 +102,6 @@ function InquiryDetailBody({ ticketId }: { ticketId: number }) {
         <ReplyForm ticketId={ticketId} resolved={data.status === 'RESOLVED'} />
       )}
     </div>
-  );
-}
-
-const WRITER_LABEL: Record<WriterType, string> = {
-  CUSTOMER: '나',
-  GUEST: '나',
-  AGENT: '상담원',
-  SYSTEM: '안내',
-};
-
-function ReplyList({ replies }: { replies: TicketReplyResponse[] }) {
-  if (!replies.length) {
-    return (
-      <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-        아직 답변이 없어요. 답변이 등록되면 알려 드릴게요.
-      </p>
-    );
-  }
-  return (
-    <ol className="space-y-3">
-      {replies.map((r) => {
-        const mine = r.writerType === 'CUSTOMER' || r.writerType === 'GUEST';
-        return (
-          <li
-            key={r.replyId}
-            className={cn('rounded-lg border p-4', mine ? 'bg-muted/40' : 'bg-card')}
-          >
-            <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-medium">
-                {mine
-                  ? WRITER_LABEL[r.writerType]
-                  : `${r.writerName} ${WRITER_LABEL[r.writerType]}`}
-              </span>
-              <span className="text-muted-foreground text-xs">{formatDateTime(r.createdAt)}</span>
-            </div>
-            <PlainText text={r.content} />
-            <AttachmentList attachments={r.attachments} className="mt-3" />
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function AttachmentList({
-  attachments,
-  className,
-}: {
-  attachments: TicketAttachment[];
-  className?: string;
-}) {
-  if (!attachments.length) return null;
-
-  async function handleDownload(a: TicketAttachment) {
-    try {
-      await downloadAttachment(a.attachmentId, a.originalName);
-    } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : '파일을 받지 못했습니다');
-    }
-  }
-
-  return (
-    <ul className={cn('flex flex-wrap gap-2', className)}>
-      {attachments.map((a) => (
-        <li key={a.attachmentId}>
-          <Button variant="outline" size="sm" onClick={() => handleDownload(a)}>
-            <Download className="size-4" />
-            <span className="max-w-48 truncate">{a.originalName}</span>
-          </Button>
-        </li>
-      ))}
-    </ul>
   );
 }
 
