@@ -43,6 +43,16 @@ export function resetPassword(token: string, newPassword: string): Promise<void>
   return apiFetch<void>('/auth/password/reset', { method: 'POST', body: { token, newPassword } });
 }
 
+/** 비회원 조회 비밀번호 재설정 메일 (CU-06 ①). 티켓번호·이메일이 맞든 아니든 항상 성공 응답 */
+export function requestGuestPasswordReset(ticketNo: string, email: string): Promise<void> {
+  return apiFetch<void>('/auth/guest/reset-request', { method: 'POST', body: { ticketNo, email } });
+}
+
+/** 새 조회 비밀번호 (CU-06 ②) */
+export function resetGuestPassword(token: string, newPassword: string): Promise<void> {
+  return apiFetch<void>('/auth/guest/reset', { method: 'POST', body: { token, newPassword } });
+}
+
 export function getMe(): Promise<Member> {
   return apiFetch<Member>('/members/me');
 }

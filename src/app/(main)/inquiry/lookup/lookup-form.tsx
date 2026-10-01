@@ -118,6 +118,12 @@ function LookupFormBody() {
                   {...register('password')}
                 />
                 <FieldError errors={[errors.password]} />
+                <Link
+                  href="/inquiry/lookup/reset"
+                  className="text-muted-foreground hover:text-foreground self-end text-sm"
+                >
+                  조회 비밀번호를 잊으셨나요?
+                </Link>
               </Field>
               {serverError && <FieldError>{serverError}</FieldError>}
               <Button type="submit" disabled={isSubmitting} className="w-full">
