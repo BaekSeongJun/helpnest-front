@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { AgentTable, formatHours, formatRating } from '@/components/dashboard/AgentTable';
+import { CsvButton } from '@/components/dashboard/CsvButton';
 import { DistributionBars } from '@/components/dashboard/DistributionBars';
 import { KpiGrid } from '@/components/dashboard/KpiCard';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,6 +18,7 @@ import {
   getDashboardSummary,
   getMyStat,
 } from '@/lib/api/dashboard';
+import { downloadAgentsCsv } from '@/lib/api/report';
 import { useAuth } from '@/lib/auth/use-auth';
 import { formatDuration, formatNumber, formatPercent } from '@/lib/format';
 
@@ -39,15 +41,19 @@ export function DashboardView() {
         title="대시보드"
         description={isLead ? '기간 내 접수된 티켓 기준입니다.' : '내 처리현황입니다.'}
         actions={
-          <Tabs value={period} onValueChange={(v) => setPeriod(v as DashboardPeriod)}>
-            <TabsList>
-              {PERIODS.map((p) => (
-                <TabsTrigger key={p.value} value={p.value}>
-                  {p.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <>
+            <Tabs value={period} onValueChange={(v) => setPeriod(v as DashboardPeriod)}>
+              <TabsList>
+                {PERIODS.map((p) => (
+                  <TabsTrigger key={p.value} value={p.value}>
+                    {p.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+            {/* 상담원별 처리현황 CSV (LEAD+) */}
+            {isLead && <CsvButton onDownload={() => downloadAgentsCsv(period)} />}
+          </>
         }
       />
       {isLead ? <TeamDashboard period={period} /> : <MyDashboard period={period} />}
