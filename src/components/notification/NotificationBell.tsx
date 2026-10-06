@@ -22,9 +22,10 @@ import {
   notificationKeys,
   type NotificationItem,
 } from '@/lib/api/notification';
+import { getAccessToken } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/use-auth';
 import { formatRelative } from '@/lib/format';
-import { subscribeStomp } from '@/lib/ws/stompClient';
+import { activateStomp, deactivateStomp, subscribeStomp } from '@/lib/ws/stompClient';
 
 export function NotificationBell() {
   const { status, member } = useAuth();
@@ -34,14 +35,23 @@ export function NotificationBell() {
 
   // 푸시 1건마다 목록과 미읽음 수를 함께 되살린다. 받은 알림을 캐시에 직접 끼워 넣지 않는
   // 이유는 배지 숫자가 서버에만 있어서다 — 둘을 따로 다루면 "배지는 3인데 목록은 2건"이 된다.
+  //
+  // 토큰 값이 아니라 `getAccessToken` 함수를 넘긴다 — 재연결 시점에 최신 토큰을 읽어야 하고
+  // (재발급됐으면 예전 값으로는 CONNECT 가 거부된다) Access 토큰은 메모리에만 있다.
   useEffect(() => {
     if (status !== 'authenticated') return;
-    // TODO(PMJ): 연결 활성화 `activateStomp(getAccessToken)` 는 CR front#33(client.ts 토큰
-    // getter) 이 머지되면 여기에 한 줄 추가한다. 구독은 연결 전에 등록해 둬도 되므로
-    // (stompClient 가 onConnect 에서 다시 건다) 이 효과는 지금 형태 그대로 둔다.
-    return subscribeStomp<NotificationItem>('/user/queue/notifications', () => {
+    activateStomp(getAccessToken);
+    const unsubscribe = subscribeStomp<NotificationItem>('/user/queue/notifications', () => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
     });
+    return () => {
+      unsubscribe();
+      // 로그아웃하면 소켓도 닫는다. 두면 로그아웃한 탭에 알림이 계속 밀려든다.
+      // ponytail: 이 벨이 유일한 구독자라 여기서 연결을 끊어도 된다 — S3 채팅이 붙으면
+      //           활성화·해제를 세션 수준(AuthGuard 등)으로 올려야 벨이 사라질 때 채팅이
+      //           끊기지 않는다
+      deactivateStomp();
+    };
   }, [status, queryClient]);
 
   const unread = useQuery({
