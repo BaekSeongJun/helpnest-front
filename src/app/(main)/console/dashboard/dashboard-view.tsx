@@ -28,8 +28,6 @@ const PERIODS: { value: DashboardPeriod; label: string }[] = [
   { value: '30D', label: '최근 30일' },
 ];
 
-const RATING_HINT = '설문 연동 후 표시';
-
 export function DashboardView() {
   const { member } = useAuth();
   const isLead = member?.role === 'LEAD' || member?.role === 'ADMIN';
@@ -85,7 +83,7 @@ function TeamDashboard({ period }: { period: DashboardPeriod }) {
           { label: '미배정', value: formatNumber(s.unassigned), hint: '현재 기준' },
           { label: 'SLA 위반율', value: formatPercent(s.slaBreachRate) },
           { label: '평균 첫 응답', value: formatDuration(s.avgFirstResponseMin) },
-          { label: '평균 만족도', value: formatRating(s.avgRating), hint: RATING_HINT },
+          { label: '평균 만족도', value: formatRating(s.avgRating) },
         ]}
       />
       <div className="grid gap-4 lg:grid-cols-2">
@@ -133,7 +131,7 @@ function MyDashboard({ period }: { period: DashboardPeriod }) {
         { label: '평균 첫 응답', value: formatDuration(a.avgFirstResponseMin) },
         { label: '평균 해결 시간', value: formatHours(a.avgResolveHour) },
         { label: 'SLA 위반율', value: formatPercent(a.slaBreachRate) },
-        { label: '평균 만족도', value: formatRating(a.avgRating), hint: RATING_HINT },
+        { label: '평균 만족도', value: formatRating(a.avgRating) },
       ]}
     />
   );
