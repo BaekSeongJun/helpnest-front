@@ -90,11 +90,7 @@ export function ReportsView() {
               { label: '평균 처리시간', value: formatHours(report.data.avgResolveHour) },
               { label: 'SLA 위반율', value: formatPercent(report.data.slaBreachRate) },
               { label: '불만 비율', value: formatPercent(report.data.negativeRate) },
-              {
-                label: '평균 만족도',
-                value: formatRating(report.data.avgRating),
-                hint: '설문 연동 후 표시',
-              },
+              { label: '평균 만족도', value: formatRating(report.data.avgRating) },
             ]}
           />
           <div className="grid gap-4 lg:grid-cols-2">
