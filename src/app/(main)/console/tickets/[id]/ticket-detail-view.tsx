@@ -3,13 +3,17 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { AiAnalysisPanel } from '@/components/ai/AiAnalysisPanel';
+import { AiDraftButton } from '@/components/ai/AiDraftButton';
 import { FileList } from '@/components/common/file-list';
 import { PlainText } from '@/components/common/plain-text';
 import { PageHeader } from '@/components/common/page-header';
 import { PriorityBadge, SentimentBadge, StatusBadge } from '@/components/common/badges';
 import { ErrorState, LoadingSkeleton } from '@/components/common/states';
-import { ReplyEditor } from '@/components/ticket/ReplyEditor';
+import { TemplatePicker } from '@/components/template/template-picker';
+import { ReplyEditor, type ReplyEditorHandle } from '@/components/ticket/ReplyEditor';
 import type { ReplyValues } from '@/components/ticket/schema';
 import { TicketHistoryList } from '@/components/ticket/TicketHistoryList';
 import { TicketSidePanel } from '@/components/ticket/TicketSidePanel';
@@ -26,6 +30,12 @@ import { formatDateTime } from '@/lib/format';
 
 export function TicketDetailView({ ticketId }: { ticketId: number }) {
   const queryClient = useQueryClient();
+  const editorRef = useRef<ReplyEditorHandle>(null);
+
+  // 어떤 초안을 썼는지 등록 때 함께 보낸다(ticket_reply.ai_draft_id, docs/05 §4.2).
+  // 초안을 넣고 손으로 고쳐도 "이 초안에서 출발했다"는 사실은 그대로이므로 지우지 않는다.
+  // 여러 번 생성했다면 마지막에 넣은 것이 실제로 쓰인 초안이다.
+  const [aiDraftId, setAiDraftId] = useState<number | undefined>(undefined);
 
   // 상세와 이력을 두 쿼리로 나눈다 — 상태를 바꾸면 둘만 다시 받으면 되고, 상세 응답도 작아진다
   const detail = useQuery({
@@ -38,11 +48,13 @@ export function TicketDetailView({ ticketId }: { ticketId: number }) {
   });
 
   const reply = useMutation({
-    mutationFn: (values: ReplyValues) => createConsoleReply(ticketId, values),
+    mutationFn: (values: ReplyValues) => createConsoleReply(ticketId, { ...values, aiDraftId }),
     // 낙관적 업데이트를 쓰지 않는다 — 공개 답변은 상태(ASSIGNED→IN_PROGRESS)와
     // firstRespondedAt 까지 함께 바꾸므로 서버 응답이 정확하다
     onSuccess: async (_created, values) => {
       toast.success(values.isInternal ? '내부 메모를 저장했습니다' : '답변을 등록했습니다');
+      // 다음 답변이 앞 답변의 초안 id 를 물고 가지 않게 비운다
+      setAiDraftId(undefined);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ticketKeys.consoleDetail(ticketId) }),
         queryClient.invalidateQueries({ queryKey: ticketKeys.histories(ticketId) }),
@@ -119,9 +131,26 @@ export function TicketDetailView({ ticketId }: { ticketId: number }) {
               {/* 콘솔이므로 내부 메모를 함께 본다 */}
               <TicketTimeline replies={ticket.replies} showInternal />
               <ReplyEditor
+                ref={editorRef}
                 onSubmit={(values) => reply.mutateAsync(values).then(() => undefined)}
                 submitting={reply.isPending}
-                /* S2: toolbarSlot 에 TemplatePicker(백성준)·AiDraftButton(신수진) 주입 */
+                toolbarSlot={
+                  <>
+                    <TemplatePicker
+                      category={ticket.category}
+                      customerName={ticket.customerName}
+                      ticketNo={ticket.ticketNo}
+                      onSelect={(text) => editorRef.current?.insertText(text)}
+                    />
+                    <AiDraftButton
+                      ticketId={ticketId}
+                      onInsert={(text, draftId) => {
+                        editorRef.current?.insertText(text);
+                        setAiDraftId(draftId);
+                      }}
+                    />
+                  </>
+                }
               />
             </CardContent>
           </Card>
@@ -129,6 +158,9 @@ export function TicketDetailView({ ticketId }: { ticketId: number }) {
 
         <aside className="w-full shrink-0 space-y-4 lg:w-80">
           <TicketSidePanel ticket={ticket} />
+          {/* 상태·배정 다음에 둔다 — 분류는 참고 정보이고, 상담원이 먼저 보는 것은
+              "내 티켓인가·언제까지인가"다 (docs/09 §2.3 우측 패널 순서) */}
+          <AiAnalysisPanel ticketId={ticketId} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">상태 이력</CardTitle>
