@@ -33,6 +33,26 @@ export function signup(req: SignupRequest): Promise<Member> {
   return apiFetch<Member>('/auth/signup', { method: 'POST', body: req });
 }
 
+/** 비밀번호 찾기 (CM-03). 가입 여부와 무관하게 항상 성공 응답 */
+export function requestPasswordReset(email: string): Promise<void> {
+  return apiFetch<void>('/auth/password/reset-request', { method: 'POST', body: { email } });
+}
+
+/** 재설정 (CM-04). 서버가 모든 Refresh 를 폐기하므로 새 비밀번호로 다시 로그인한다 */
+export function resetPassword(token: string, newPassword: string): Promise<void> {
+  return apiFetch<void>('/auth/password/reset', { method: 'POST', body: { token, newPassword } });
+}
+
+/** 비회원 조회 비밀번호 재설정 메일 (CU-06 ①). 티켓번호·이메일이 맞든 아니든 항상 성공 응답 */
+export function requestGuestPasswordReset(ticketNo: string, email: string): Promise<void> {
+  return apiFetch<void>('/auth/guest/reset-request', { method: 'POST', body: { ticketNo, email } });
+}
+
+/** 새 조회 비밀번호 (CU-06 ②) */
+export function resetGuestPassword(token: string, newPassword: string): Promise<void> {
+  return apiFetch<void>('/auth/guest/reset', { method: 'POST', body: { token, newPassword } });
+}
+
 export function getMe(): Promise<Member> {
   return apiFetch<Member>('/members/me');
 }

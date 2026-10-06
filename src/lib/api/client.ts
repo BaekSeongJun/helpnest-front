@@ -56,6 +56,11 @@ export function getAuthSnapshot(): AuthSnapshot {
   return snapshot;
 }
 
+/** STOMP CONNECT 헤더용 (docs/02 §6). 연결 시점마다 호출하고 캡처하지 않는다 — 만료 후 재연결이 실패한다 */
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
 export function setSession(auth: AuthResponse): void {
   accessToken = auth.accessToken;
   publish({ status: 'authenticated', member: auth.member });
