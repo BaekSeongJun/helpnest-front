@@ -22,10 +22,9 @@ const ACTION_LABEL: Record<HistoryAction, string> = {
  * 아는 코드만 한글로 바꾸고, 모르는 값은 원문을 그대로 둔다 — 억지로 비우면
  * "무엇에서 무엇으로"가 사라진다.
  *
- * TODO(PMJ): 배정 이력이 member_id 숫자뿐이라 '#3' 으로밖에 못 쓴다. 이름을 보여 주려면
- * TicketHistoryResponse 에 대상 상담원 이름이 필요하다(백엔드 DTO 변경 — 내 소유라 S2 에 추가).
+ * 배정은 값이 member_id 라 서버가 붙여 준 이름(name)을 쓴다. 탈퇴 등으로 이름이 없을 때만 '#3' 으로 둔다.
  */
-function label(action: HistoryAction, value: string | null): string | null {
+function label(action: HistoryAction, value: string | null, name: string | null): string | null {
   if (!value) return null;
   switch (action) {
     // 접수는 action 문구가 이미 '접수'라 toValue(RECEIVED)를 또 쓰면 같은 말이 두 번 나온다
@@ -37,10 +36,10 @@ function label(action: HistoryAction, value: string | null): string | null {
       return PRIORITY_BADGE[value as keyof typeof PRIORITY_BADGE]?.label ?? value;
     case 'CATEGORY_CHANGE':
       return CATEGORY_LABEL[value as keyof typeof CATEGORY_LABEL] ?? value;
-    // 배정은 member_id 라 숫자임을 드러내 준다 — 맨 숫자는 무엇인지 알 수 없다
+    // 이름이 없을 때 맨 숫자만 쓰면 무엇인지 알 수 없어 '#' 로 id 임을 드러낸다
     case 'ASSIGN':
     case 'REASSIGN':
-      return `#${value}`;
+      return name ?? `#${value}`;
     default:
       return value;
   }
@@ -57,8 +56,8 @@ export function TicketHistoryList({ histories }: { histories: TicketHistoryRespo
   return (
     <ol className="space-y-3">
       {items.map((h) => {
-        const from = label(h.action, h.fromValue);
-        const to = label(h.action, h.toValue);
+        const from = label(h.action, h.fromValue, h.fromName);
+        const to = label(h.action, h.toValue, h.toName);
         return (
           <li key={h.historyId} className="space-y-0.5 text-sm">
             <div className="flex flex-wrap items-baseline gap-x-2">
