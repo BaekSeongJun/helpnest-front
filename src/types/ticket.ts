@@ -117,6 +117,9 @@ export interface TicketHistoryResponse {
   action: HistoryAction;
   fromValue: string | null;
   toValue: string | null;
+  /** ASSIGN·REASSIGN 일 때 fromValue·toValue(member_id)의 상담원 이름. 그 외·조회 불가면 null */
+  fromName: string | null;
+  toName: string | null;
   /** actorType 이 MEMBER 가 아니면 null */
   actorName: string | null;
   actorType: ActorType;
