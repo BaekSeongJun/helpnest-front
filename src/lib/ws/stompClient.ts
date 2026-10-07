@@ -105,6 +105,21 @@ export function subscribeStomp<T>(destination: string, onMessage: (body: T) => v
   };
 }
 
+/**
+ * 서버 핸들러(`/app/**`)로 보낸다. 서버는 `/app/**` 외의 SEND 를 거부한다(메시지 위조 방지).
+ *
+ * 구독과 달리 **쌓아 두었다가 연결 후 보내지 않는다** — 끊긴 동안 쓴 메시지가 재연결 순간
+ * 몰려 나가면 사용자는 이미 실패했다고 생각한 메시지가 뒤늦게 상대에게 뜬다. 대신 false 를
+ * 돌려줘 화면이 "연결이 끊겼다"고 알리고 입력을 지우지 않게 한다.
+ *
+ * @returns 실제로 보냈으면 true, 연결이 없어 보내지 못했으면 false
+ */
+export function publishStomp(destination: string, body: unknown): boolean {
+  if (!client?.connected) return false;
+  client.publish({ destination, body: JSON.stringify(body) });
+  return true;
+}
+
 /** 연결돼 있을 때만 실제 SUBSCRIBE 를 보낸다. 아직이면 {@code onConnect} 가 대신 건다 */
 function openSubscription(destination: string): void {
   if (!client?.connected || subscriptions.has(destination)) return;
