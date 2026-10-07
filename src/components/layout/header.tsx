@@ -21,6 +21,7 @@ import { ROLE_LABEL } from '@/config/badge';
 import { logout } from '@/lib/api/auth';
 import { useAuth } from '@/lib/auth/use-auth';
 import { AvailabilityToggle } from './availability-toggle';
+import { Logo } from './logo';
 import { NotificationBellSlot } from './notification-bell-slot';
 import { SidebarNav } from './sidebar-nav';
 
@@ -44,13 +45,15 @@ export function Header() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="bg-sidebar w-60 gap-0 p-0">
-          <SheetTitle className="flex h-14 items-center border-b px-4">HelpNest</SheetTitle>
+          <SheetTitle className="flex h-14 items-center border-b px-4">
+            <Logo className="text-lg" />
+          </SheetTitle>
           <SidebarNav onNavigate={() => setMenuOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      <Link href="/" className="text-primary text-lg font-bold">
-        HelpNest
+      <Link href="/" aria-label="HelpNest 홈">
+        <Logo className="text-lg" />
       </Link>
 
       <div className="ml-auto flex items-center gap-2">

@@ -4,12 +4,14 @@
 // 상담원끼리 "이 조건 좀 봐 달라"고 링크를 공유할 수 있어야 한다.
 'use client';
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CATEGORY_LABEL, PRIORITY_BADGE, SLA_BADGE, TICKET_STATUS_BADGE } from '@/config/badge';
+import { getAccessToken } from '@/lib/api/client';
 import { getConsoleTickets, ticketKeys } from '@/lib/api/ticket';
 import { useAuth } from '@/lib/auth/use-auth';
+import { activateStomp, subscribeStomp } from '@/lib/ws/stompClient';
 import type { ConsoleTicketQuery, TicketTab } from '@/types/ticket';
 
 export const PAGE_SIZE = 20;
@@ -98,6 +100,28 @@ export function useConsoleTickets() {
     // 페이지·필터를 바꿀 때 표가 빈 상태로 깜빡이지 않게 이전 결과를 유지한다
     placeholderData: keepPreviousData,
   });
+
+  // 접수·상태 변경·배정 신호(/topic/console/tickets)가 오면 현재 조건으로 다시 불러온다.
+  // 신호에 행을 싣지 않으므로(ConsoleTicketEvent) 캐시를 고치지 않고 무효화만 한다 — 필터·권한은
+  // 목록 API 가 판단한다. 일괄 배정처럼 신호가 몰리면 첫 신호부터 1초 모아 한 번만 요청한다.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    // 연결은 Header 의 알림 벨이 열어 두지만, 이미 연결돼 있으면 아무것도 하지 않으므로 여기서도 부른다
+    activateStomp(getAccessToken);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const unsubscribe = subscribeStomp('/topic/console/tickets', () => {
+      // 이미 예약돼 있으면 그 요청에 합류한다. 매번 미루면 신호가 계속 오는 동안 갱신이 영영 안 된다
+      if (timer) return;
+      timer = setTimeout(() => {
+        timer = undefined;
+        void queryClient.invalidateQueries({ queryKey: ['tickets', 'console', 'list'] });
+      }, 1000);
+    });
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
+  }, [queryClient]);
 
   const reset = useCallback(() => {
     setKeyword('');

@@ -47,9 +47,9 @@ export function NotificationBell() {
     return () => {
       unsubscribe();
       // 로그아웃하면 소켓도 닫는다. 두면 로그아웃한 탭에 알림이 계속 밀려든다.
-      // ponytail: 이 벨이 유일한 구독자라 여기서 연결을 끊어도 된다 — S3 채팅이 붙으면
-      //           활성화·해제를 세션 수준(AuthGuard 등)으로 올려야 벨이 사라질 때 채팅이
-      //           끊기지 않는다
+      // 채팅 화면도 같은 소켓을 쓰지만(activateStomp 는 이미 연결돼 있으면 아무것도 하지 않는다)
+      // 벨은 Header 에 늘 붙어 있어 이 정리는 로그아웃 때만 돈다 — 그때는 채팅도 끊겨야 맞다.
+      // ponytail: 벨이 없는 레이아웃에 채팅을 두게 되면 활성화·해제를 세션 수준으로 올린다
       deactivateStomp();
     };
   }, [status, queryClient]);
@@ -101,7 +101,7 @@ export function NotificationBell() {
           <Bell className="size-5" aria-hidden />
           {count > 0 && (
             // 숫자는 배지 안에 글자로도 들어간다 — 색·점만으로 구분하지 않는다(docs/08 §14)
-            <span className="bg-destructive absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium text-white">
+            <span className="bg-destructive absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-medium text-white">
               {count > 99 ? '99+' : count}
             </span>
           )}
