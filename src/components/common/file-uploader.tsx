@@ -1,11 +1,12 @@
 // @owner BSJ
 'use client';
 
-import { Paperclip, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
 import { ATTACHMENT_LIMIT } from '@/lib/api/attachment';
+import { cn } from '@/lib/utils';
 
 interface FileUploaderProps {
   files: File[];
@@ -47,6 +48,8 @@ export function FileUploader({ files, onChange, disabled }: FileUploaderProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const full = files.length >= ATTACHMENT_LIMIT.maxFiles;
 
   function handleSelect(selected: FileList | null) {
     if (!selected?.length) return;
@@ -69,21 +72,32 @@ export function FileUploader({ files, onChange, disabled }: FileUploaderProps) {
         disabled={disabled}
         onChange={(e) => handleSelect(e.target.files)}
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled || files.length >= ATTACHMENT_LIMIT.maxFiles}
-          onClick={() => inputRef.current?.click()}
-        >
-          <Paperclip className="size-4" />
-          파일 선택
-        </Button>
-        <span className="text-muted-foreground text-xs">
-          {files.length}/{ATTACHMENT_LIMIT.maxFiles}개 · 파일당 10MB · 이미지, PDF, 문서, 한글
+      {/* 시안 A안: 점선 영역을 누르거나 파일을 끌어 놓는다 */}
+      <button
+        type="button"
+        disabled={disabled || full}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          if (!disabled && !full) handleSelect(e.dataTransfer.files);
+        }}
+        className={cn(
+          'text-muted-foreground focus-visible:ring-ring/50 flex w-full flex-col items-center gap-1.5 rounded-lg border border-dashed p-6 text-center transition-colors outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-60',
+          dragging ? 'border-primary bg-primary/5' : 'border-input hover:bg-muted/50',
+        )}
+      >
+        <Upload className="size-5" aria-hidden="true" />
+        <span className="text-foreground text-sm">파일을 끌어 놓거나 눌러서 올려 주세요</span>
+        <span className="text-xs">
+          이미지·PDF·문서·한글, 최대 10MB · {files.length}/{ATTACHMENT_LIMIT.maxFiles}개
         </span>
-      </div>
+      </button>
 
       {files.length > 0 && (
         <ul className="divide-y rounded-md border text-sm">
