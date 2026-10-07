@@ -5,9 +5,9 @@
 //   CS-02(콘솔): <TicketTimeline replies={ticket.replies} showInternal />
 // 본문은 PlainText(백성준)로만 그린다. dangerouslySetInnerHTML 금지 — 입력한 HTML 은 글자 그대로 보인다.
 
+import { Lock } from 'lucide-react';
 import { FileList } from '@/components/common/file-list';
 import { PlainText } from '@/components/common/plain-text';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -21,18 +21,18 @@ interface TicketTimelineProps {
   className?: string;
 }
 
-/** 고객·비회원은 왼쪽, 상담원은 오른쪽, 시스템 로그는 가운데 */
-const ALIGN: Record<WriterType, string> = {
-  CUSTOMER: 'items-start',
-  GUEST: 'items-start',
-  AGENT: 'items-end',
-  SYSTEM: 'items-center',
+/** 시안 A안: 모두 왼쪽 정렬 대화형. 상담원 답변은 강조 배경, 아바타 색으로도 구분 */
+const BOX: Record<WriterType, string> = {
+  CUSTOMER: '',
+  GUEST: '',
+  AGENT: 'bg-accent',
+  SYSTEM: '',
 };
 
-const BUBBLE: Record<WriterType, string> = {
-  CUSTOMER: 'bg-muted',
-  GUEST: 'bg-muted',
-  AGENT: 'bg-secondary',
+const AVATAR: Record<WriterType, string> = {
+  CUSTOMER: 'bg-secondary text-secondary-foreground',
+  GUEST: 'bg-secondary text-secondary-foreground',
+  AGENT: 'bg-primary text-primary-foreground',
   SYSTEM: '',
 };
 
@@ -56,7 +56,7 @@ export function TicketTimeline({
   }
 
   return (
-    <ol className={cn('space-y-4', className)}>
+    <ol className={cn('space-y-2', className)}>
       {items.map((reply) =>
         reply.writerType === 'SYSTEM' ? (
           <li
@@ -67,24 +67,37 @@ export function TicketTimeline({
             <TimeLabel at={reply.createdAt} />
           </li>
         ) : (
-          <li key={reply.replyId} className={cn('flex flex-col gap-1', ALIGN[reply.writerType])}>
-            <div className="text-muted-foreground flex items-center gap-2 text-xs">
-              <span className="text-foreground font-medium">{reply.writerName}</span>
-              <TimeLabel at={reply.createdAt} />
-            </div>
-            <div
+          <li
+            key={reply.replyId}
+            className={cn(
+              'flex gap-3 rounded-lg p-4',
+              BOX[reply.writerType],
+              // 색만으로 구분하지 않는다 (08 §11) — 테두리와 함께 라벨을 반드시 붙인다
+              reply.isInternal && 'bg-warning/10 border-warning/25 border',
+            )}
+          >
+            <span
               className={cn(
-                'max-w-[85%] rounded-lg px-3 py-2',
-                BUBBLE[reply.writerType],
-                // 색만으로 구분하지 않는다 (08 §11) — 테두리와 함께 라벨 배지를 반드시 붙인다
-                reply.isInternal && 'border-warning border bg-transparent',
+                'flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                AVATAR[reply.writerType],
               )}
+              aria-hidden="true"
             >
-              {reply.isInternal && (
-                <Badge className="bg-warning text-warning-foreground mb-1.5">내부 메모</Badge>
-              )}
+              {reply.writerName.slice(0, 1)}
+            </span>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+                {reply.isInternal && (
+                  <span className="text-warning inline-flex items-center gap-1 font-semibold">
+                    <Lock className="size-3.5" aria-hidden="true" />
+                    내부 메모
+                  </span>
+                )}
+                <span className="text-foreground text-sm font-semibold">{reply.writerName}</span>
+                <TimeLabel at={reply.createdAt} />
+              </div>
               <PlainText text={reply.content} />
-              <FileList attachments={reply.attachments} className="mt-2" />
+              <FileList attachments={reply.attachments} />
             </div>
           </li>
         ),
