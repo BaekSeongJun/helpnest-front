@@ -94,6 +94,12 @@ export const CATEGORY_LABEL = {
   ETC: '기타',
 } as const satisfies Record<TicketCategory, string>;
 
+/** 고객 이력(CS-07) 회원·비회원 구분 */
+export const CUSTOMER_TYPE_BADGE = {
+  MEMBER: { label: '회원', className: tone.secondary },
+  GUEST: { label: '비회원', className: tone.mutedOutline },
+} as const satisfies Record<string, BadgeStyle>;
+
 export const ROLE_LABEL = {
   CUSTOMER: '고객',
   AGENT: '상담원',

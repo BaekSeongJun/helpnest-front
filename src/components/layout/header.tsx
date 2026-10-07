@@ -1,7 +1,7 @@
 // @owner BSJ
 'use client';
 
-import { ChevronDown, LogOut, Menu, User } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, Search, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -72,6 +72,29 @@ export function Header() {
         <Logo className="text-base" />
         {isConsole && <span className="text-muted-foreground text-xs">콘솔</span>}
       </Link>
+
+      {/* 시안 A안: 콘솔 헤더 검색 → 티켓함 검색어로 이동 (LEAD+ 는 전체 탭) */}
+      {isConsole && status === 'authenticated' && member && (
+        <form
+          role="search"
+          className="text-muted-foreground border-input focus-within:ring-ring/50 hidden h-9 max-w-md flex-1 items-center gap-2 rounded-md border px-3 focus-within:ring-3 md:flex"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const keyword = new FormData(e.currentTarget).get('keyword')?.toString().trim();
+            if (!keyword) return;
+            const tab = member.role === 'AGENT' ? 'MINE' : 'ALL';
+            router.push(`/console/tickets?${new URLSearchParams({ tab, keyword })}`);
+          }}
+        >
+          <Search className="size-4 shrink-0" aria-hidden="true" />
+          <input
+            name="keyword"
+            placeholder="티켓 번호·제목·내용 검색"
+            aria-label="티켓 검색"
+            className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
+          />
+        </form>
+      )}
 
       {topMenu.length > 0 && (
         <nav aria-label="주 메뉴" className="hidden gap-1 text-sm md:flex">
