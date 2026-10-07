@@ -9,8 +9,9 @@ export function Footer() {
   if (member && member.role !== 'CUSTOMER') return null;
 
   return (
-    <footer className="text-muted-foreground border-t px-4 py-6 text-center text-xs">
-      © HelpNest · AI 고객상담 헬프데스크
+    <footer className="text-muted-foreground flex flex-wrap justify-center gap-x-6 gap-y-1 border-t px-4 py-6 text-xs">
+      <span>© 2026 HelpNest</span>
+      <span>AI 고객상담 헬프데스크</span>
     </footer>
   );
 }
