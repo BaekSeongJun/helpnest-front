@@ -17,7 +17,8 @@ import { formatDuration } from '@/lib/format';
 /** 매핑에 없는 값(백엔드 enum 추가 등)은 원문을 회색으로 — 화면이 깨지지 않게 */
 function MappedBadge({ style, raw }: { style: BadgeStyle | undefined; raw: string }) {
   return (
-    <Badge className={style?.className ?? 'bg-muted text-muted-foreground'}>
+    <Badge className={style?.className ?? 'bg-muted text-muted-foreground rounded-md'}>
+      {style?.icon && <style.icon aria-hidden="true" />}
       {style?.label ?? raw}
     </Badge>
   );
@@ -74,6 +75,7 @@ export function SlaBadge({ dueAt, respondedAt, breached, warning }: SlaBadgeProp
   const style = SLA_BADGE[key];
   return (
     <Badge className={style.className}>
+      <style.icon aria-hidden="true" />
       {key === 'ON_TRACK' ? formatDuration(remainMinutes) : style.label}
     </Badge>
   );

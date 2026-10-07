@@ -123,10 +123,21 @@ export function CustomerChat() {
   return (
     <div className="flex flex-col gap-4">
       {header}
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge className={badge.className}>{badge.label}</Badge>
-        {room.status === 'OPEN' && <span className="text-sm">상담원 {room.agentName ?? ''} 님과 연결되었습니다.</span>}
-        {room.status === 'CLOSED' && <span className="text-sm">상담이 종료되었습니다.</span>}
+      {/* 시안 A안: 상담원 아바타·이름 + 상태 배지 머리줄 */}
+      <div className="bg-card flex items-center gap-3 rounded-lg border px-5 py-3.5 shadow-xs">
+        <span className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold" aria-hidden="true">
+          {(room.agentName ?? 'H').slice(0, 1)}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="font-semibold">{room.status === 'OPEN' && room.agentName ? `${room.agentName} 상담원` : 'HelpNest 상담'}</span>
+          <span className="text-muted-foreground text-xs">
+            {room.status === 'OPEN' ? '상담원과 연결되었습니다' : room.status === 'CLOSED' ? '상담이 종료되었습니다' : '상담원 연결을 기다리고 있어요'}
+          </span>
+        </div>
+        <Badge className={badge.className}>
+          {badge.icon && <badge.icon aria-hidden="true" />}
+          {badge.label}
+        </Badge>
       </div>
 
       {waiting && (

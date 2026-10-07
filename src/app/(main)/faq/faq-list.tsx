@@ -2,7 +2,7 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ChevronDown, Search } from 'lucide-react';
+import { Minus, Plus, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
@@ -41,7 +41,7 @@ export function FaqList() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <PageHeader title="자주 묻는 질문" description="궁금한 내용을 먼저 찾아보세요." />
 
       <form
@@ -85,24 +85,28 @@ export function FaqList() {
           description="다른 검색어로 찾아보거나 문의를 남겨 주세요."
         />
       ) : (
-        <ul className="bg-card divide-y rounded-lg border">
+        // 시안 A안: 질문마다 카드, 오른쪽 둥근 +/− 버튼
+        <ul className="space-y-2">
           {data.content.map((faq) => (
-            <li key={faq.faqId}>
+            <li key={faq.faqId} className="bg-card rounded-lg border shadow-xs">
               <details
                 className="group"
                 onToggle={(e) => handleToggle(faq.faqId, e.currentTarget.open)}
               >
-                <summary className="hover:bg-muted/50 flex cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <span className="text-muted-foreground w-20 shrink-0 text-xs">
+                <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 py-1 pr-1 pl-5 [&::-webkit-details-marker]:hidden">
+                  <span className="text-muted-foreground w-20 shrink-0 text-xs font-semibold">
                     {CATEGORY_LABEL[faq.category]}
                   </span>
-                  <span className="flex-1 font-medium">{faq.question}</span>
-                  <ChevronDown
-                    className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180"
+                  <span className="flex-1 text-sm font-medium">{faq.question}</span>
+                  <span
+                    className="bg-muted text-foreground group-open:bg-foreground group-open:text-background flex size-10 shrink-0 items-center justify-center rounded-full"
                     aria-hidden
-                  />
+                  >
+                    <Plus className="size-4 group-open:hidden" />
+                    <Minus className="hidden size-4 group-open:block" />
+                  </span>
                 </summary>
-                <div className="bg-muted/30 px-4 py-3">
+                <div className="text-secondary-foreground px-5 pt-1 pb-4 text-sm leading-relaxed sm:pl-[6.75rem]">
                   <PlainText text={faq.answer} />
                 </div>
               </details>
@@ -111,9 +115,12 @@ export function FaqList() {
         </ul>
       )}
 
-      <div className="mt-8 flex flex-col items-center gap-3 rounded-lg border p-6 text-center">
-        <p className="font-medium">해결되지 않았나요?</p>
-        <Button asChild>
+      <div className="bg-accent mt-8 flex flex-col gap-3 rounded-lg px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="text-accent-foreground font-semibold">원하는 답을 찾지 못하셨나요?</p>
+          <p className="text-secondary-foreground text-sm">상담원이 직접 도와드릴게요.</p>
+        </div>
+        <Button asChild className="shrink-0">
           <Link href="/inquiry/new">문의하기</Link>
         </Button>
       </div>

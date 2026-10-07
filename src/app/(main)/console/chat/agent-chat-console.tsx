@@ -82,7 +82,7 @@ export function AgentChatConsole() {
   return (
     <div>
       {header}
-      <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
+      <div className="grid gap-3 lg:grid-cols-[15rem_1fr]">
         <RoomList rooms={sorted} selectedId={selected?.roomId ?? null} onSelect={setSelectedId} />
         {selected ? (
           <RoomPanel key={selected.roomId} room={selected} />
@@ -104,33 +104,51 @@ function RoomList({
   onSelect: (roomId: number) => void;
 }) {
   return (
-    <nav aria-label="내 채팅방" className="bg-card max-h-[32rem] overflow-y-auto rounded-lg border">
-      <ul>
-        {rooms.map((room) => {
-          const badge = CHAT_STATUS_BADGE[room.status === 'OPEN' ? 'OPEN' : 'CLOSED'];
-          return (
-            <li key={room.roomId}>
-              <button
-                type="button"
-                onClick={() => onSelect(room.roomId)}
-                aria-current={room.roomId === selectedId ? 'true' : undefined}
-                className={cn(
-                  'hover:bg-muted flex w-full flex-col gap-1 border-b px-4 py-3 text-left last:border-b-0',
-                  room.roomId === selectedId && 'bg-muted',
-                )}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="truncate font-medium">{room.customerName ?? '고객'}</span>
-                  <Badge className={badge.className}>{badge.label}</Badge>
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  {formatDateTime(room.openedAt ?? room.queuedAt)}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+    // 시안 A안: 상태별 묶음(상담중 → 종료) + 이니셜 아바타
+    <nav aria-label="내 채팅방" className="bg-card max-h-[40rem] overflow-y-auto rounded-lg border p-3 shadow-xs">
+      {(['OPEN', 'CLOSED'] as const).map((group) => {
+        const items = rooms.filter((r) => (r.status === 'OPEN') === (group === 'OPEN'));
+        if (items.length === 0) return null;
+        const badge = CHAT_STATUS_BADGE[group];
+        return (
+          <div key={group}>
+            <p className="text-muted-foreground px-2 pt-2.5 pb-1 text-xs font-semibold">
+              {badge.label} {items.length}
+            </p>
+            <ul className="space-y-0.5">
+              {items.map((room) => (
+                <li key={room.roomId}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(room.roomId)}
+                    aria-current={room.roomId === selectedId ? 'true' : undefined}
+                    className={cn(
+                      'hover:bg-muted flex w-full items-center gap-2.5 rounded-md p-2.5 text-left',
+                      room.roomId === selectedId && 'bg-accent hover:bg-accent',
+                    )}
+                  >
+                    <span className="bg-secondary text-secondary-foreground flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+                      {(room.customerName ?? '고객').slice(0, 1)}
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-semibold">{room.customerName ?? '고객'}</span>
+                        <Badge className={cn(badge.className, 'px-1.5')}>
+                          {badge.icon && <badge.icon aria-hidden="true" />}
+                          {badge.label}
+                        </Badge>
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {formatDateTime(room.openedAt ?? room.queuedAt)}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
     </nav>
   );
 }
@@ -175,9 +193,13 @@ function RoomPanel({ room }: { room: ChatRoom }) {
 
   return (
     <section aria-label={`${room.customerName ?? '고객'} 님과의 대화`} className="flex flex-col gap-4">
-      <div className="bg-card flex flex-wrap items-start justify-between gap-3 rounded-lg border p-4">
-        <div className="flex flex-col gap-2">
-          <p className="font-medium">{room.customerName ?? '고객'} 님</p>
+      <div className="bg-card flex flex-wrap items-start justify-between gap-3 rounded-lg border p-4 shadow-xs">
+        <div className="flex items-start gap-3">
+          <span className="bg-secondary text-secondary-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+            {(room.customerName ?? '고객').slice(0, 1)}
+          </span>
+          <div className="flex flex-col gap-2">
+          <p className="font-semibold">{room.customerName ?? '고객'} 님</p>
           {t ? (
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <Link href={`/console/tickets/${t.ticketId}`} className="text-primary font-mono text-xs underline">
@@ -196,6 +218,7 @@ function RoomPanel({ room }: { room: ChatRoom }) {
           ) : ticket.isError ? (
             <p className="text-muted-foreground text-sm">티켓 정보를 불러오지 못했습니다.</p>
           ) : null}
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <TemplatePicker

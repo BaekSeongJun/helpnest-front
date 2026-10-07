@@ -43,7 +43,7 @@ export function InquiryForm() {
   const { status } = useAuth();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <PageHeader
         title="문의하기"
         description={
@@ -112,8 +112,69 @@ function InquiryFormBody({ isGuest }: { isGuest: boolean }) {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <FieldGroup>
+            {isGuest && (
+              <FieldSet>
+                {/* 시안 A안: 회원/비회원 전환 + 비회원 정보를 맨 위에 */}
+                <FieldLegend variant="label">문의하는 분</FieldLegend>
+                <div className="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1 text-sm">
+                  <Link
+                    href="/login?next=/inquiry/new"
+                    className="text-muted-foreground hover:text-foreground rounded-md py-1.5 text-center"
+                  >
+                    회원으로 문의
+                  </Link>
+                  <span
+                    aria-current="true"
+                    className="bg-background rounded-md py-1.5 text-center font-medium shadow-xs"
+                  >
+                    비회원으로 문의
+                  </span>
+                </div>
+                <FieldGroup className="grid gap-4 sm:grid-cols-2">
+                  <Field data-invalid={!!errors.guestName}>
+                    <FieldLabel htmlFor="guest-name">이름</FieldLabel>
+                    <Input
+                      id="guest-name"
+                      autoComplete="name"
+                      aria-invalid={!!errors.guestName}
+                      {...register('guestName')}
+                    />
+                    <FieldError errors={[errors.guestName]} />
+                  </Field>
+                  <Field data-invalid={!!errors.guestEmail}>
+                    <FieldLabel htmlFor="guest-email">이메일</FieldLabel>
+                    <Input
+                      id="guest-email"
+                      type="email"
+                      autoComplete="email"
+                      aria-invalid={!!errors.guestEmail}
+                      {...register('guestEmail')}
+                    />
+                    <FieldDescription>답변을 이 주소로 알려 드려요.</FieldDescription>
+                    <FieldError errors={[errors.guestEmail]} />
+                  </Field>
+                  <Field data-invalid={!!errors.guestPassword} className="sm:col-span-2">
+                    <FieldLabel htmlFor="guest-password">조회 비밀번호</FieldLabel>
+                    <Input
+                      id="guest-password"
+                      type="password"
+                      autoComplete="new-password"
+                      aria-invalid={!!errors.guestPassword}
+                      {...register('guestPassword')}
+                    />
+                    <FieldDescription>
+                      4~64자. 티켓번호·이메일과 함께 문의 내역을 볼 때 필요해요.
+                    </FieldDescription>
+                    <FieldError errors={[errors.guestPassword]} />
+                  </Field>
+                </FieldGroup>
+              </FieldSet>
+            )}
+
             <Field>
-              <FieldLabel htmlFor="inquiry-category">문의 유형 (선택)</FieldLabel>
+              <FieldLabel htmlFor="inquiry-category">
+                문의 유형 <span className="text-muted-foreground font-normal">(선택)</span>
+              </FieldLabel>
               <Controller
                 control={control}
                 name="categoryHint"
@@ -122,7 +183,7 @@ function InquiryFormBody({ isGuest }: { isGuest: boolean }) {
                     value={field.value ?? ''}
                     onValueChange={(v) => field.onChange(v as TicketCategory)}
                   >
-                    <SelectTrigger id="inquiry-category" className="w-full sm:w-48">
+                    <SelectTrigger id="inquiry-category" className="w-full">
                       <SelectValue placeholder="유형 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -149,7 +210,7 @@ function InquiryFormBody({ isGuest }: { isGuest: boolean }) {
               <FieldLabel htmlFor="inquiry-content">내용</FieldLabel>
               <Textarea
                 id="inquiry-content"
-                rows={10}
+                rows={6}
                 maxLength={CONTENT_MAX}
                 placeholder="주문번호, 상품명, 겪고 있는 문제를 자세히 적어 주시면 더 빨리 도와드릴 수 있어요."
                 aria-invalid={!!errors.content}
@@ -162,63 +223,18 @@ function InquiryFormBody({ isGuest }: { isGuest: boolean }) {
             </Field>
 
             <Field>
-              <FieldLabel>첨부 파일 (선택)</FieldLabel>
+              <FieldLabel>
+                첨부 파일 <span className="text-muted-foreground font-normal">(선택)</span>
+              </FieldLabel>
               <FileUploader files={files} onChange={setFiles} disabled={isSubmitting} />
             </Field>
 
-            {isGuest && (
-              <FieldSet>
-                <FieldLegend>비회원 정보</FieldLegend>
-                <FieldDescription>
-                  티켓번호·이메일·조회 비밀번호로 답변을 확인해요.{' '}
-                  <Link href="/login?next=/inquiry/new" className="text-primary hover:underline">
-                    로그인
-                  </Link>
-                  하면 입력하지 않아도 돼요.
-                </FieldDescription>
-                <FieldGroup>
-                  <Field data-invalid={!!errors.guestName}>
-                    <FieldLabel htmlFor="guest-name">이름</FieldLabel>
-                    <Input
-                      id="guest-name"
-                      autoComplete="name"
-                      aria-invalid={!!errors.guestName}
-                      {...register('guestName')}
-                    />
-                    <FieldError errors={[errors.guestName]} />
-                  </Field>
-                  <Field data-invalid={!!errors.guestEmail}>
-                    <FieldLabel htmlFor="guest-email">이메일</FieldLabel>
-                    <Input
-                      id="guest-email"
-                      type="email"
-                      autoComplete="email"
-                      aria-invalid={!!errors.guestEmail}
-                      {...register('guestEmail')}
-                    />
-                    <FieldDescription>답변이 등록되면 이 주소로 알려 드려요.</FieldDescription>
-                    <FieldError errors={[errors.guestEmail]} />
-                  </Field>
-                  <Field data-invalid={!!errors.guestPassword}>
-                    <FieldLabel htmlFor="guest-password">조회 비밀번호</FieldLabel>
-                    <Input
-                      id="guest-password"
-                      type="password"
-                      autoComplete="new-password"
-                      aria-invalid={!!errors.guestPassword}
-                      {...register('guestPassword')}
-                    />
-                    <FieldDescription>4~64자. 문의 내역을 볼 때 필요해요.</FieldDescription>
-                    <FieldError errors={[errors.guestPassword]} />
-                  </Field>
-                </FieldGroup>
-              </FieldSet>
-            )}
-
             {serverError && <FieldError>{serverError}</FieldError>}
-            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto sm:self-end">
-              {isSubmitting ? '접수 중…' : '문의 접수'}
-            </Button>
+            <div className="flex justify-end pt-1">
+              <Button type="submit" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
+                {isSubmitting ? '접수 중…' : '문의 접수하기'}
+              </Button>
+            </div>
           </FieldGroup>
         </form>
       </CardContent>

@@ -3,14 +3,15 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AiAnalysisPanel } from '@/components/ai/AiAnalysisPanel';
 import { AiDraftButton } from '@/components/ai/AiDraftButton';
 import { FileList } from '@/components/common/file-list';
 import { PlainText } from '@/components/common/plain-text';
-import { PageHeader } from '@/components/common/page-header';
-import { PriorityBadge, SentimentBadge, StatusBadge } from '@/components/common/badges';
+import { PriorityBadge, SentimentBadge, SlaBadge, StatusBadge } from '@/components/common/badges';
 import { ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { TemplatePicker } from '@/components/template/template-picker';
 import { ReplyEditor, type ReplyEditorHandle } from '@/components/ticket/ReplyEditor';
@@ -86,72 +87,83 @@ export function TicketDetailView({ ticketId }: { ticketId: number }) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={ticket.title}
-        description={
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs">{ticket.ticketNo}</span>
-            <span aria-hidden>·</span>
-            <span>{ticket.customerName}</span>
-            <span aria-hidden>·</span>
-            <span>{formatDateTime(ticket.createdAt)}</span>
+      {/* 시안 A안: 경로 → 제목 → 배지 줄 */}
+      <div className="space-y-2">
+        <nav aria-label="경로" className="text-muted-foreground flex items-center gap-1 text-sm">
+          <Link href="/console/tickets" className="hover:text-foreground">
+            티켓
+          </Link>
+          <ChevronRight className="size-4" aria-hidden="true" />
+          <span className="font-mono text-xs">{ticket.ticketNo}</span>
+        </nav>
+        <h1 className="text-2xl font-semibold tracking-tight">{ticket.title}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={ticket.status} />
+          <PriorityBadge priority={ticket.priority} />
+          <SlaBadge
+            dueAt={ticket.firstResponseDueAt}
+            respondedAt={ticket.firstRespondedAt}
+            breached={ticket.slaBreached}
+            warning={ticket.slaWarned}
+          />
+          <SentimentBadge sentiment={ticket.sentiment} />
+          <span className="text-muted-foreground text-sm">
+            {ticket.customerName} · {formatDateTime(ticket.createdAt)}
           </span>
-        }
-        actions={
-          <>
-            <StatusBadge status={ticket.status} />
-            <PriorityBadge priority={ticket.priority} />
-            <SentimentBadge sentiment={ticket.sentiment} />
-          </>
-        }
-      />
+        </div>
+      </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
         <div className="min-w-0 flex-1 space-y-6">
+          {/* 시안 A안: 고객 원문 → 답변·메모 → 작성기를 한 카드 안의 대화로 */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                문의 내용
-                <span className="text-muted-foreground ml-2 text-sm font-normal">
-                  {CATEGORY_LABEL[ticket.category] ?? ticket.category}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <PlainText text={ticket.content} />
-              <FileList attachments={ticket.attachments} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">답변</CardTitle>
-            </CardHeader>
             <CardContent className="space-y-6">
+              <div className="flex gap-3 p-4">
+                <span
+                  className="bg-secondary text-secondary-foreground flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                  aria-hidden="true"
+                >
+                  {ticket.customerName.slice(0, 1)}
+                </span>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-foreground text-sm font-semibold">
+                      {ticket.customerName}
+                    </span>
+                    <span>{formatDateTime(ticket.createdAt)}</span>
+                    <span aria-hidden>·</span>
+                    <span>{CATEGORY_LABEL[ticket.category] ?? ticket.category}</span>
+                  </div>
+                  <PlainText text={ticket.content} />
+                  <FileList attachments={ticket.attachments} />
+                </div>
+              </div>
               {/* 콘솔이므로 내부 메모를 함께 본다 */}
               <TicketTimeline replies={ticket.replies} showInternal />
-              <ReplyEditor
-                ref={editorRef}
-                onSubmit={(values) => reply.mutateAsync(values).then(() => undefined)}
-                submitting={reply.isPending}
-                toolbarSlot={
-                  <>
-                    <TemplatePicker
-                      category={ticket.category}
-                      customerName={ticket.customerName}
-                      ticketNo={ticket.ticketNo}
-                      onSelect={(text) => editorRef.current?.insertText(text)}
-                    />
-                    <AiDraftButton
-                      ticketId={ticketId}
-                      onInsert={(text, draftId) => {
-                        editorRef.current?.insertText(text);
-                        setAiDraftId(draftId);
-                      }}
-                    />
-                  </>
-                }
-              />
+              <div className="border-t pt-5">
+                <ReplyEditor
+                  ref={editorRef}
+                  onSubmit={(values) => reply.mutateAsync(values).then(() => undefined)}
+                  submitting={reply.isPending}
+                  toolbarSlot={
+                    <>
+                      <TemplatePicker
+                        category={ticket.category}
+                        customerName={ticket.customerName}
+                        ticketNo={ticket.ticketNo}
+                        onSelect={(text) => editorRef.current?.insertText(text)}
+                      />
+                      <AiDraftButton
+                        ticketId={ticketId}
+                        onInsert={(text, draftId) => {
+                          editorRef.current?.insertText(text);
+                          setAiDraftId(draftId);
+                        }}
+                      />
+                    </>
+                  }
+                />
+              </div>
             </CardContent>
           </Card>
         </div>

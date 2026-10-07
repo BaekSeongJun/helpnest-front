@@ -29,11 +29,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <nav aria-label="주 메뉴" className="space-y-4 p-3">
+    <nav aria-label="주 메뉴" className="space-y-3 p-3">
       {getMenu(member?.role ?? null).map((section, i) => (
-        <div key={section.title ?? i} className="space-y-1">
+        <div key={section.title ?? i} className="space-y-0.5">
           {section.title && (
-            <p className="text-muted-foreground px-3 pb-1 text-xs font-medium">{section.title}</p>
+            <p className="text-muted-foreground px-2 pt-2 pb-1 text-xs">{section.title}</p>
           )}
           {section.items.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
@@ -44,9 +44,9 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
+                  'flex h-9 items-center gap-2 rounded-md px-2 text-sm transition-colors',
                   active
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
                     : 'text-sidebar-foreground hover:bg-sidebar-accent/60',
                 )}
               >

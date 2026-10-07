@@ -5,10 +5,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Loader2, RotateCw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { AiBadge, PriorityBadge, SentimentBadge } from '@/components/common/badges';
+import { PriorityBadge, SentimentBadge } from '@/components/common/badges';
 import { PlainText } from '@/components/common/plain-text';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CATEGORY_LABEL } from '@/config/badge';
@@ -51,9 +50,10 @@ export function AiAnalysisPanel({ ticketId }: { ticketId: number }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        {/* 시안 A안: 푸시아 아이콘 + 제목 */}
+        <CardTitle className="text-ai flex items-center gap-2 text-base">
+          <Sparkles className="size-4" aria-hidden="true" />
           AI 분석
-          <AiBadge />
         </CardTitle>
         {query.isSuccess && <CardAction>{reclassifyButton}</CardAction>}
       </CardHeader>
@@ -88,7 +88,7 @@ function AiResultView({ result }: { result: AiResult }) {
       <dt className="text-muted-foreground">유형</dt>
       <dd>
         {result.category && (
-          <Badge variant="outline">{CATEGORY_LABEL[result.category] ?? result.category}</Badge>
+          <span className="font-medium">{CATEGORY_LABEL[result.category] ?? result.category}</span>
         )}
       </dd>
       <dt className="text-muted-foreground">긴급도</dt>
@@ -97,7 +97,9 @@ function AiResultView({ result }: { result: AiResult }) {
         <SentimentBadge sentiment={result.sentiment} />
       </dd>
       <dt className="text-muted-foreground">신뢰도</dt>
-      <dd>{formatPercent(result.confidence == null ? null : result.confidence * 100)}</dd>
+      <dd className="text-ai tabular-nums">
+        {formatPercent(result.confidence == null ? null : result.confidence * 100)}
+      </dd>
       <dt className="text-muted-foreground self-start">요약</dt>
       <dd>{result.summary && <PlainText text={result.summary} />}</dd>
     </dl>
