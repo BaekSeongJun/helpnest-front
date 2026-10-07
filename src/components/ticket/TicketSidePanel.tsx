@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { SlaBadge } from '@/components/common/badges';
 import { ConfirmDialog } from '@/components/common/confirm-dialog';
+import { CustomerHistoryPanel } from '@/components/customer/CustomerHistoryPanel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -226,7 +227,8 @@ export function TicketSidePanel({ ticket }: { ticket: TicketResponse }) {
       )}
 
       {/* S2: 신수진 AiAnalysisPanel 주입 자리 */}
-      {/* S2: 백성준 CustomerHistoryPanel 주입 자리 */}
+      {/* 같은 고객의 과거 문의 (FR-HIS-01, 백성준 컴포넌트 — CR #45) */}
+      <CustomerHistoryPanel ticketId={ticket.ticketId} />
 
       <ConfirmDialog
         open={confirming}
