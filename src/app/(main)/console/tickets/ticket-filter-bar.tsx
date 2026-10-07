@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CATEGORY_LABEL, PRIORITY_BADGE, TICKET_STATUS_BADGE } from '@/config/badge';
+import { cn } from '@/lib/utils';
 import type { FilterPatch } from './use-console-tickets';
 
 /** Radix Select 는 빈 문자열을 값으로 쓸 수 없어 '전체'에 센티넬을 둔다 (member-admin 과 동일) */
@@ -75,16 +76,16 @@ export function TicketFilterBar({
           options={SLA_OPTIONS}
           onChange={(v) => onChange({ sla: v })}
         />
-        <div className="grid gap-1.5">
-          <Label htmlFor="keyword" className="text-muted-foreground text-xs">
+        <div>
+          <Label htmlFor="keyword" className="sr-only">
             검색
           </Label>
           <Input
             id="keyword"
             value={keyword}
             onChange={(e) => onKeywordChange(e.target.value)}
-            placeholder="번호·제목·본문"
-            className="w-56"
+            placeholder="번호·제목·본문 검색"
+            className="h-8 w-56"
           />
         </div>
       </FilterBar>
@@ -107,15 +108,21 @@ interface FilterSelectProps {
 function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
   const id = `filter-${label}`;
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={id} className="text-muted-foreground text-xs">
+    // 시안 A안: 점선 칩 안에 "라벨 값". 값을 고르면 실선으로 바뀐다
+    <div>
+      <Label htmlFor={id} className="sr-only">
         {label}
       </Label>
       <Select
         value={value ?? ALL}
         onValueChange={(next) => onChange(next === ALL ? undefined : next)}
       >
-        <SelectTrigger id={id} size="sm" className="w-32">
+        <SelectTrigger
+          id={id}
+          size="sm"
+          className={cn('w-auto gap-1.5', value ? 'border-primary/40' : 'border-dashed')}
+        >
+          <span className="text-muted-foreground">{label}</span>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
