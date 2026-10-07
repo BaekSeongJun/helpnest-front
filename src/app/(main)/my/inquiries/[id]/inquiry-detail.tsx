@@ -2,6 +2,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -60,7 +61,12 @@ function InquiryDetailBody({ ticketId }: { ticketId: number }) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-5">
+      <Button asChild variant="outline" size="sm">
+        <Link href="/my/inquiries">
+          <ArrowLeft className="size-4" />내 문의
+        </Link>
+      </Button>
       <div className="space-y-2">
         <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
           <span className="font-mono">{data.ticketNo}</span>

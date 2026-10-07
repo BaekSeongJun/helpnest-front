@@ -43,7 +43,7 @@ export function InquiryForm() {
   const { status } = useAuth();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <PageHeader
         title="문의하기"
         description={

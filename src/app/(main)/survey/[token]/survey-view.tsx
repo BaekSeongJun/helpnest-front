@@ -29,7 +29,7 @@ export function SurveyView({ token }: { token: string }) {
   });
 
   return (
-    <div className="mx-auto max-w-md">
+    <div>
       <Card>
         {isPending ? (
           <CardContent>
