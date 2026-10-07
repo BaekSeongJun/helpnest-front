@@ -101,7 +101,7 @@ export function NotificationBell() {
           <Bell className="size-5" aria-hidden />
           {count > 0 && (
             // 숫자는 배지 안에 글자로도 들어간다 — 색·점만으로 구분하지 않는다(docs/08 §14)
-            <span className="bg-destructive absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium text-white">
+            <span className="bg-destructive absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-medium text-white">
               {count > 99 ? '99+' : count}
             </span>
           )}
