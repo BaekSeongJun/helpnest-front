@@ -103,7 +103,8 @@ function TeamDashboard({ period }: { period: DashboardPeriod }) {
           labelOf={(k) => TICKET_STATUS_BADGE[k as keyof typeof TICKET_STATUS_BADGE]?.label ?? k}
         />
         <DistributionBars
-          title="유형별"
+          title="AI 분류별 접수"
+          ai
           counts={s.byCategory}
           labelOf={(k) => CATEGORY_LABEL[k as keyof typeof CATEGORY_LABEL] ?? k}
         />
