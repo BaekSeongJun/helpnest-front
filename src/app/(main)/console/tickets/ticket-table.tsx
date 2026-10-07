@@ -1,7 +1,8 @@
 // @owner PMJ
-// CS-01 10열 티켓 표 (docs/09 §2.3). 정렬은 서버가 한다 — 프론트에서 재정렬하면 페이지 경계에서 순서가 깨진다
+// CS-01 티켓 표 (docs/09 §2.3). 정렬은 서버가 한다 — 프론트에서 재정렬하면 페이지 경계에서 순서가 깨진다
 'use client';
 
+import { Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PriorityBadge, SentimentBadge, SlaBadge, StatusBadge } from '@/components/common/badges';
 import { DataTable, type DataTableColumn } from '@/components/common/data-table';
@@ -17,22 +18,35 @@ interface TicketTableProps {
   onReset: () => void;
 }
 
+// 시안 A안: 제목 아래에 고객·유형을 두 번째 줄로, 불만 배지는 제목 옆
 const COLUMNS: DataTableColumn<TicketListItem>[] = [
   {
     header: '번호',
     cell: (t) => t.ticketNo,
-    className: 'w-44 font-mono text-xs',
+    className: 'text-muted-foreground w-40 font-mono text-xs tabular-nums',
   },
-  { header: '제목', cell: (t) => <span className="line-clamp-1">{t.title}</span> },
-  { header: '고객', cell: (t) => t.customerName, className: 'w-24' },
   {
-    header: '유형',
-    cell: (t) => CATEGORY_LABEL[t.category] ?? t.category,
-    className: 'w-24',
+    header: '제목',
+    cell: (t) => (
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-medium">{t.title}</span>
+          <SentimentBadge sentiment={t.sentiment} />
+        </div>
+        <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <span>{t.customerName}</span>
+          <span aria-hidden="true">·</span>
+          <span className="text-ai inline-flex items-center gap-1">
+            <Sparkles className="size-3" aria-hidden="true" />
+            {CATEGORY_LABEL[t.category] ?? t.category}
+          </span>
+        </div>
+      </div>
+    ),
+    className: 'max-w-0 py-2.5',
   },
-  { header: '우선순위', cell: (t) => <PriorityBadge priority={t.priority} />, className: 'w-24' },
-  { header: '불만', cell: (t) => <SentimentBadge sentiment={t.sentiment} />, className: 'w-20' },
   { header: '상태', cell: (t) => <StatusBadge status={t.status} />, className: 'w-24' },
+  { header: '우선순위', cell: (t) => <PriorityBadge priority={t.priority} />, className: 'w-24' },
   {
     header: 'SLA',
     // 판정을 여기서 다시 쓰지 않는다 — CS-02 상세도 같은 SlaBadge 를 쓰므로 두 화면이 어긋날 수 없다
@@ -44,12 +58,12 @@ const COLUMNS: DataTableColumn<TicketListItem>[] = [
         warning={t.slaWarned}
       />
     ),
-    className: 'w-24',
+    className: 'w-28',
   },
   {
     header: '담당',
     cell: (t) => t.agentName ?? <span className="text-muted-foreground">미배정</span>,
-    className: 'w-24',
+    className: 'w-24 truncate',
   },
   {
     header: '접수일',
@@ -64,7 +78,7 @@ const COLUMNS: DataTableColumn<TicketListItem>[] = [
         <TooltipContent>{formatDateTime(t.createdAt)}</TooltipContent>
       </Tooltip>
     ),
-    className: 'w-28',
+    className: 'text-muted-foreground w-24 text-right text-xs',
   },
 ];
 

@@ -3,14 +3,15 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AiAnalysisPanel } from '@/components/ai/AiAnalysisPanel';
 import { AiDraftButton } from '@/components/ai/AiDraftButton';
 import { FileList } from '@/components/common/file-list';
 import { PlainText } from '@/components/common/plain-text';
-import { PageHeader } from '@/components/common/page-header';
-import { PriorityBadge, SentimentBadge, StatusBadge } from '@/components/common/badges';
+import { PriorityBadge, SentimentBadge, SlaBadge, StatusBadge } from '@/components/common/badges';
 import { ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { TemplatePicker } from '@/components/template/template-picker';
 import { ReplyEditor, type ReplyEditorHandle } from '@/components/ticket/ReplyEditor';
@@ -86,25 +87,31 @@ export function TicketDetailView({ ticketId }: { ticketId: number }) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={ticket.title}
-        description={
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs">{ticket.ticketNo}</span>
-            <span aria-hidden>·</span>
-            <span>{ticket.customerName}</span>
-            <span aria-hidden>·</span>
-            <span>{formatDateTime(ticket.createdAt)}</span>
+      {/* 시안 A안: 경로 → 제목 → 배지 줄 */}
+      <div className="space-y-2">
+        <nav aria-label="경로" className="text-muted-foreground flex items-center gap-1 text-sm">
+          <Link href="/console/tickets" className="hover:text-foreground">
+            티켓
+          </Link>
+          <ChevronRight className="size-4" aria-hidden="true" />
+          <span className="font-mono text-xs">{ticket.ticketNo}</span>
+        </nav>
+        <h1 className="text-2xl font-semibold tracking-tight">{ticket.title}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={ticket.status} />
+          <PriorityBadge priority={ticket.priority} />
+          <SlaBadge
+            dueAt={ticket.firstResponseDueAt}
+            respondedAt={ticket.firstRespondedAt}
+            breached={ticket.slaBreached}
+            warning={ticket.slaWarned}
+          />
+          <SentimentBadge sentiment={ticket.sentiment} />
+          <span className="text-muted-foreground text-sm">
+            {ticket.customerName} · {formatDateTime(ticket.createdAt)}
           </span>
-        }
-        actions={
-          <>
-            <StatusBadge status={ticket.status} />
-            <PriorityBadge priority={ticket.priority} />
-            <SentimentBadge sentiment={ticket.sentiment} />
-          </>
-        }
-      />
+        </div>
+      </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
         <div className="min-w-0 flex-1 space-y-6">
