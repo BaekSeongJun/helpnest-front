@@ -214,3 +214,15 @@ export interface ConsoleTicketQuery {
   /** 예: 'createdAt,desc'. 생략하면 서버가 SLA 임박순으로 정렬한다 */
   sort?: string;
 }
+
+/**
+ * 콘솔 목록 갱신 신호 (`/topic/console/tickets`, docs/04 §11). 목록 한 줄이 아니다 —
+ * 받으면 현재 조건으로 목록·상세를 다시 읽는다(필터·권한은 API 가 처리).
+ */
+export interface ConsoleTicketEvent {
+  ticketId: number;
+  event: 'CREATED' | 'UPDATED';
+  status: TicketStatus;
+  priority: TicketPriority;
+  agentId: number | null;
+}
