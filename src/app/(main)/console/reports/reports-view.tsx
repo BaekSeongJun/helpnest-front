@@ -2,6 +2,7 @@
 // CS-05 월간 리포트 본체. 월은 화면 상태로만 둔다(대시보드 기간과 같은 방식)
 'use client';
 
+import { Clock, Frown, Inbox, ShieldAlert, Smile, Timer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
@@ -85,12 +86,30 @@ export function ReportsView() {
                 label: '총 문의',
                 value: formatNumber(report.data.total),
                 hint: `전월 대비 ${formatChange(report.data.total, report.data.prevTotal)}`,
+                icon: Inbox,
               },
-              { label: '평균 첫 응답', value: formatDuration(report.data.avgFirstResponseMin) },
-              { label: '평균 처리시간', value: formatHours(report.data.avgResolveHour) },
-              { label: 'SLA 위반율', value: formatPercent(report.data.slaBreachRate) },
-              { label: '불만 비율', value: formatPercent(report.data.negativeRate) },
-              { label: '평균 만족도', value: formatRating(report.data.avgRating) },
+              {
+                label: '평균 첫 응답',
+                value: formatDuration(report.data.avgFirstResponseMin),
+                icon: Timer,
+              },
+              {
+                label: '평균 처리시간',
+                value: formatHours(report.data.avgResolveHour),
+                icon: Clock,
+              },
+              {
+                label: 'SLA 위반율',
+                value: formatPercent(report.data.slaBreachRate),
+                icon: ShieldAlert,
+              },
+              {
+                label: '불만 비율',
+                value: formatPercent(report.data.negativeRate),
+                icon: Frown,
+                ai: true,
+              },
+              { label: '평균 만족도', value: formatRating(report.data.avgRating), icon: Smile },
             ]}
           />
           <div className="grid gap-4 lg:grid-cols-2">

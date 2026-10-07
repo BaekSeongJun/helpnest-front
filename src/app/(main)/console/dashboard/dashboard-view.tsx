@@ -2,6 +2,16 @@
 // CS-04 대시보드 본체. 기간은 화면 상태로만 둔다(공유 링크 요구 없음)
 'use client';
 
+import {
+  CircleCheck,
+  CircleDot,
+  Clock,
+  Inbox,
+  ShieldAlert,
+  Smile,
+  Timer,
+  UserX,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
@@ -79,11 +89,11 @@ function TeamDashboard({ period }: { period: DashboardPeriod }) {
     <>
       <KpiGrid
         items={[
-          { label: '전체 문의', value: formatNumber(s.total) },
-          { label: '미배정', value: formatNumber(s.unassigned), hint: '현재 기준' },
-          { label: 'SLA 위반율', value: formatPercent(s.slaBreachRate) },
-          { label: '평균 첫 응답', value: formatDuration(s.avgFirstResponseMin) },
-          { label: '평균 만족도', value: formatRating(s.avgRating) },
+          { label: '전체 문의', value: formatNumber(s.total), icon: Inbox },
+          { label: '미배정', value: formatNumber(s.unassigned), hint: '현재 기준', icon: UserX },
+          { label: 'SLA 위반율', value: formatPercent(s.slaBreachRate), icon: ShieldAlert },
+          { label: '평균 첫 응답', value: formatDuration(s.avgFirstResponseMin), icon: Timer },
+          { label: '평균 만족도', value: formatRating(s.avgRating), icon: Smile },
         ]}
       />
       <div className="grid gap-4 lg:grid-cols-2">
@@ -125,13 +135,23 @@ function MyDashboard({ period }: { period: DashboardPeriod }) {
   return (
     <KpiGrid
       items={[
-        { label: '배정 대기', value: formatNumber(a.assignedCount), hint: '현재 기준' },
-        { label: '처리중', value: formatNumber(a.inProgressCount), hint: '현재 기준' },
-        { label: '오늘 해결', value: formatNumber(a.resolvedToday) },
-        { label: '평균 첫 응답', value: formatDuration(a.avgFirstResponseMin) },
-        { label: '평균 해결 시간', value: formatHours(a.avgResolveHour) },
-        { label: 'SLA 위반율', value: formatPercent(a.slaBreachRate) },
-        { label: '평균 만족도', value: formatRating(a.avgRating) },
+        {
+          label: '배정 대기',
+          value: formatNumber(a.assignedCount),
+          hint: '현재 기준',
+          icon: Inbox,
+        },
+        {
+          label: '처리중',
+          value: formatNumber(a.inProgressCount),
+          hint: '현재 기준',
+          icon: CircleDot,
+        },
+        { label: '오늘 해결', value: formatNumber(a.resolvedToday), icon: CircleCheck },
+        { label: '평균 첫 응답', value: formatDuration(a.avgFirstResponseMin), icon: Timer },
+        { label: '평균 해결 시간', value: formatHours(a.avgResolveHour), icon: Clock },
+        { label: 'SLA 위반율', value: formatPercent(a.slaBreachRate), icon: ShieldAlert },
+        { label: '평균 만족도', value: formatRating(a.avgRating), icon: Smile },
       ]}
     />
   );
