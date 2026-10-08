@@ -34,7 +34,7 @@ const COLUMNS: DataTableColumn<TicketListItem>[] = [
           <SentimentBadge sentiment={t.sentiment} />
         </div>
         <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-          <span>{t.customerName}</span>
+          <span className="truncate">{t.customerName}</span>
           <span aria-hidden="true">·</span>
           <span className="text-ai inline-flex items-center gap-1">
             <Sparkles className="size-3" aria-hidden="true" />
@@ -43,7 +43,8 @@ const COLUMNS: DataTableColumn<TicketListItem>[] = [
         </div>
       </div>
     ),
-    className: 'max-w-0 py-2.5',
+    // max-w-0 은 말줄임용, min-w 는 좁은 화면에서 0폭이 돼 옆 열과 겹치는 것을 막는다(#65) — 그보다 좁으면 표가 가로 스크롤
+    className: 'min-w-56 max-w-0 py-2.5',
   },
   { header: '상태', cell: (t) => <StatusBadge status={t.status} />, className: 'w-24' },
   { header: '우선순위', cell: (t) => <PriorityBadge priority={t.priority} />, className: 'w-24' },
