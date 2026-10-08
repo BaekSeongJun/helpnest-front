@@ -1,5 +1,6 @@
 // @owner PMJ
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
+import { refreshSession } from '@/lib/api/client';
 
 /**
  * STOMP over WebSocket 단일 연결 (docs/02 §6, docs/04 §11).
@@ -60,6 +61,12 @@ export function activateStomp(getToken: () => string | null): void {
     onStompError: (frame) => {
       // CONNECT 거부(만료·Guest 토큰)가 여기로 온다. 서버는 이미 세션을 끊었다
       console.error('[stomp] 서버 오류', frame.headers.message, frame.body);
+      // REST 호출이 없던 idle 탭은 메모리 토큰이 만료된 채 남아 CONNECT 가 5초마다 거부된다(#57).
+      // 재발급은 여기서 한다 — ERROR 프레임이 왔다는 건 서버가 떠 있다는 뜻이다. beforeConnect 에서
+      // 하면 재배포 중(서버 다운) 재발급이 실패하고, refreshSession 이 세션을 비워 로그아웃된다.
+      // 성공하면 다음 재연결(beforeConnect)이 새 토큰을 읽고, 실패하면 세션이 비워져 연결을 포기한다
+      const token = getToken();
+      if (token && isExpired(token)) void refreshSession();
     },
   });
 
@@ -131,6 +138,20 @@ function openSubscription(destination: string): void {
   });
 
   subscriptions.set(destination, subscription);
+}
+
+/**
+ * JWT `exp` 가 30초 안에 끝나는지. 서명은 검증하지 않는다 — 판정은 서버 몫이고 여기서는
+ * 재발급을 미리 할지만 정한다. 해석이 안 되면 false(그대로 보내 서버가 판단)
+ */
+function isExpired(token: string): boolean {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const { exp } = JSON.parse(atob(payload)) as { exp?: number };
+    return typeof exp === 'number' && exp * 1000 - 30_000 < Date.now();
+  } catch {
+    return false;
+  }
 }
 
 function parse(body: string): unknown {
