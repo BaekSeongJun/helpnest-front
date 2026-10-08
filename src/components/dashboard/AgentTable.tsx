@@ -1,5 +1,6 @@
 // @owner SSJ
-// 상담원별 처리현황 표 (docs/09 CS-04, LEAD+)
+// 상담원별 처리현황 표 (docs/09 CS-04, LEAD+). 이름 클릭 → CS-09 상담원 상세
+import Link from 'next/link';
 import { EmptyState } from '@/components/common/states';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -41,12 +42,15 @@ export function AgentTable({ agents }: { agents: readonly AgentStat[] }) {
                 <TableRow key={a.agentId}>
                   <TableCell>
                     {/* 시안 A안: 이니셜 원 + 이름 */}
-                    <span className="flex items-center gap-2.5 font-medium">
+                    <Link
+                      href={`/console/agents/${a.agentId}`}
+                      className="flex w-fit items-center gap-2.5 font-medium hover:underline"
+                    >
                       <span className="bg-secondary text-secondary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
                         {a.name.slice(0, 1)}
                       </span>
                       {a.name}
-                    </span>
+                    </Link>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatNumber(a.assignedCount)}
