@@ -12,7 +12,6 @@ import { useEffect, useState } from 'react';
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   getNotifications,
@@ -61,9 +60,10 @@ export function NotificationBell() {
   });
 
   // 목록은 패널을 열 때만 가져온다. 벨만 떠 있는 동안 필요한 건 숫자 하나뿐이다
+  // 미읽음만 받는다 — 목록에 읽음 표시가 없어, 눌러 확인한 알림이 남아 있으면 새 알림과 구분이 안 된다(#65)
   const list = useQuery({
-    queryKey: notificationKeys.list(false),
-    queryFn: () => getNotifications(false),
+    queryKey: notificationKeys.list(true),
+    queryFn: () => getNotifications(true),
     enabled: open && status === 'authenticated',
   });
 
@@ -141,7 +141,7 @@ export function NotificationBell() {
         )}
 
         {list.data && list.data.length > 0 && (
-          <ScrollArea className="max-h-96">
+          <div className="max-h-96 overflow-y-auto">
             <ul>
               {list.data.map((item) => (
                 <li key={item.notificationId}>
@@ -158,7 +158,7 @@ export function NotificationBell() {
                 </li>
               ))}
             </ul>
-          </ScrollArea>
+          </div>
         )}
       </PopoverContent>
     </Popover>
