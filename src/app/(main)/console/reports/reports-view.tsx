@@ -2,6 +2,16 @@
 // CS-05 월간 리포트 본체. 월은 화면 상태로만 둔다(대시보드 기간과 같은 방식)
 'use client';
 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Frown,
+  Inbox,
+  ShieldAlert,
+  Smile,
+  Timer,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
@@ -11,7 +21,7 @@ import { CsvButton } from '@/components/dashboard/CsvButton';
 import { DistributionBars } from '@/components/dashboard/DistributionBars';
 import { KpiGrid } from '@/components/dashboard/KpiCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -37,6 +47,13 @@ function changeRate(count: number, prev: number): number | null {
   return prev === 0 ? null : Math.round((1000 * (count - prev)) / prev) / 10;
 }
 
+/** 'YYYY-MM' 을 delta 달만큼 이동 */
+function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 function formatChange(count: number, prev: number): string {
   const rate = changeRate(count, prev);
   const diff = count - prev;
@@ -45,7 +62,8 @@ function formatChange(count: number, prev: number): string {
 }
 
 export function ReportsView() {
-  const [month, setMonth] = useState(() => seoulToday().slice(0, 7));
+  const thisMonth = seoulToday().slice(0, 7);
+  const [month, setMonth] = useState(thisMonth);
   const report = useQuery({
     queryKey: ['report', 'monthly', month],
     queryFn: () => getMonthlyReport(month),
@@ -59,13 +77,29 @@ export function ReportsView() {
         description="그 달에 접수된 티켓 기준입니다."
         actions={
           <>
-            <Input
-              type="month"
-              aria-label="조회 월"
-              className="w-40"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-            />
+            {/* 시안 A안: ‹ 2026년 9월 › 이동. 이번 달 이후는 막는다 */}
+            <div className="border-input flex h-9 items-center gap-1 rounded-md border px-1 text-sm">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="이전 달"
+                onClick={() => setMonth(shiftMonth(month, -1))}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <span className="min-w-24 text-center font-medium tabular-nums" aria-live="polite">
+                {month.slice(0, 4)}년 {Number(month.slice(5))}월
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="다음 달"
+                disabled={month >= thisMonth}
+                onClick={() => setMonth(shiftMonth(month, 1))}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
             <CsvButton onDownload={() => downloadReportCsv(month)} />
           </>
         }
@@ -85,12 +119,30 @@ export function ReportsView() {
                 label: '총 문의',
                 value: formatNumber(report.data.total),
                 hint: `전월 대비 ${formatChange(report.data.total, report.data.prevTotal)}`,
+                icon: Inbox,
               },
-              { label: '평균 첫 응답', value: formatDuration(report.data.avgFirstResponseMin) },
-              { label: '평균 처리시간', value: formatHours(report.data.avgResolveHour) },
-              { label: 'SLA 위반율', value: formatPercent(report.data.slaBreachRate) },
-              { label: '불만 비율', value: formatPercent(report.data.negativeRate) },
-              { label: '평균 만족도', value: formatRating(report.data.avgRating) },
+              {
+                label: '평균 첫 응답',
+                value: formatDuration(report.data.avgFirstResponseMin),
+                icon: Timer,
+              },
+              {
+                label: '평균 처리시간',
+                value: formatHours(report.data.avgResolveHour),
+                icon: Clock,
+              },
+              {
+                label: 'SLA 위반율',
+                value: formatPercent(report.data.slaBreachRate),
+                icon: ShieldAlert,
+              },
+              {
+                label: '불만 비율',
+                value: formatPercent(report.data.negativeRate),
+                icon: Frown,
+                ai: true,
+              },
+              { label: '평균 만족도', value: formatRating(report.data.avgRating), icon: Smile },
             ]}
           />
           <div className="grid gap-4 lg:grid-cols-2">

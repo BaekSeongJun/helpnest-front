@@ -2,7 +2,7 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ChevronDown } from 'lucide-react';
+import { ChevronRight, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PlainText } from '@/components/common/plain-text';
 import { CATEGORY_LABEL } from '@/config/badge';
@@ -28,23 +28,26 @@ export function FaqSuggest({ title }: { title: string }) {
   if (q.length < MIN_LENGTH || !data?.length) return null;
 
   return (
-    <section aria-label="추천 FAQ" className="bg-muted/30 rounded-lg border p-3">
-      <p className="mb-2 text-sm font-medium">이런 답변을 찾고 계신가요?</p>
-      <ul className="bg-card divide-y rounded-md border">
+    // 시안 A안: AI 푸시아 틴트 상자, 항목마다 카드
+    <section aria-label="추천 FAQ" className="bg-ai/5 border-ai/20 rounded-lg border p-4">
+      <p className="text-ai mb-3 flex items-center gap-1.5 text-sm font-semibold">
+        <Sparkles className="size-4" aria-hidden />이 답변이 도움이 될 수 있어요
+      </p>
+      <ul className="space-y-2">
         {data.map((faq) => (
-          <li key={faq.faqId}>
+          <li key={faq.faqId} className="bg-card rounded-md border">
             <details className="group">
-              <summary className="hover:bg-muted/50 flex cursor-pointer list-none items-center gap-3 px-3 py-2 text-sm [&::-webkit-details-marker]:hidden">
+              <summary className="hover:bg-muted/50 flex cursor-pointer list-none items-center gap-3 rounded-md px-3 py-2.5 text-sm [&::-webkit-details-marker]:hidden">
                 <span className="text-muted-foreground w-16 shrink-0 text-xs">
                   {CATEGORY_LABEL[faq.category]}
                 </span>
                 <span className="flex-1">{faq.question}</span>
-                <ChevronDown
-                  className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180"
+                <ChevronRight
+                  className="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-90"
                   aria-hidden
                 />
               </summary>
-              <div className="bg-muted/30 px-3 py-2">
+              <div className="text-secondary-foreground border-t px-3 py-2.5 text-sm">
                 <PlainText text={faq.answer} />
               </div>
             </details>

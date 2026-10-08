@@ -96,7 +96,7 @@ export function AiDraftButton({ ticketId, onInsert }: AiDraftButtonProps) {
 function DraftPreview({ draft }: { draft: AiDraft }) {
   return (
     <div className="space-y-4">
-      <PlainText text={draft.content} className="bg-muted max-h-80 overflow-y-auto rounded-md p-3" />
+      <PlainText text={draft.content} className="bg-ai/5 border-ai/20 max-h-80 overflow-y-auto rounded-lg border p-3" />
       {draft.references.length > 0 && (
         <div className="space-y-2">
           <p className="text-muted-foreground text-xs font-medium">참고 자료</p>

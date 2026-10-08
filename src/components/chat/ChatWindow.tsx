@@ -117,7 +117,7 @@ export function ChatWindow({ roomId, canSend, notice, draft, onDraftChange }: Ch
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="bg-card h-96 overflow-y-auto rounded-lg border p-4" aria-live="polite">
+      <div className="bg-card h-96 overflow-y-auto rounded-lg border p-5 shadow-xs" aria-live="polite">
         {history.hasNextPage && (
           <div className="mb-3 text-center">
             <Button
@@ -137,17 +137,30 @@ export function ChatWindow({ roomId, canSend, notice, draft, onDraftChange }: Ch
             {messages.map((m) => {
               const mine = m.senderId === member?.memberId;
               return (
-                <li key={m.messageId} className={cn('flex flex-col gap-1', mine ? 'items-end' : 'items-start')}>
-                  <span className="text-muted-foreground text-xs">
-                    {mine ? '나' : (m.senderName ?? '알 수 없음')} · {formatDateTime(m.createdAt)}
-                  </span>
-                  <PlainText
-                    text={m.content}
-                    className={cn(
-                      'max-w-[80%] rounded-lg px-3 py-2',
-                      mine ? 'bg-primary text-primary-foreground' : 'bg-muted',
-                    )}
-                  />
+                // 시안 A안: 내 말풍선은 primary·오른쪽 위 모서리, 상대는 아바타+muted·왼쪽 위 모서리
+                <li key={m.messageId} className={cn('flex gap-2.5', mine && 'flex-row-reverse')}>
+                  {!mine && (
+                    <span
+                      className="bg-secondary text-secondary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                      aria-hidden="true"
+                    >
+                      {(m.senderName ?? '?').slice(0, 1)}
+                    </span>
+                  )}
+                  <div className={cn('flex max-w-[75%] flex-col gap-1', mine ? 'items-end' : 'items-start')}>
+                    <span className="text-muted-foreground text-xs">
+                      {mine ? '나' : (m.senderName ?? '알 수 없음')} · {formatDateTime(m.createdAt)}
+                    </span>
+                    <PlainText
+                      text={m.content}
+                      className={cn(
+                        'px-3.5 py-2.5',
+                        mine
+                          ? 'bg-primary text-primary-foreground rounded-[18px] rounded-tr-sm'
+                          : 'bg-muted rounded-[18px] rounded-tl-sm',
+                      )}
+                    />
+                  </div>
                 </li>
               );
             })}

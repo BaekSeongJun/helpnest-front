@@ -6,9 +6,10 @@ import { CircleCheck, Clock, Link2Off, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
+import { PageHeader } from '@/components/common/page-header';
 import { StarRating } from '@/components/survey/star-rating';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import { ApiError } from '@/lib/api/client';
@@ -29,7 +30,11 @@ export function SurveyView({ token }: { token: string }) {
   });
 
   return (
-    <div className="mx-auto max-w-md">
+    <div>
+      <PageHeader
+        title="만족도 설문"
+        description="남겨 주신 의견은 상담 품질을 높이는 데 쓰여요."
+      />
       <Card>
         {isPending ? (
           <CardContent>
@@ -114,16 +119,16 @@ function SurveyForm({
 
   return (
     <>
-      <CardHeader>
-        <CardTitle className="text-lg">상담은 만족스러우셨나요?</CardTitle>
-        <CardDescription>
-          {ticketNo} · {title}
-        </CardDescription>
-      </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} noValidate>
-          <FieldGroup>
+          <FieldGroup className="gap-7">
+            {/* 시안 A안: 어떤 문의에 대한 설문인지 회색 상자로 */}
+            <div className="bg-muted flex flex-col gap-0.5 rounded-lg px-4 py-3.5 text-sm">
+              <span className="font-semibold">{title}</span>
+              <span className="text-muted-foreground font-mono text-xs">{ticketNo}</span>
+            </div>
             <Field data-invalid={ratingError}>
+              <FieldLabel className="text-base font-semibold">상담은 만족스러우셨나요?</FieldLabel>
               <StarRating
                 value={rating}
                 disabled={submit.isPending}
@@ -132,11 +137,12 @@ function SurveyForm({
                   setRatingError(false);
                 }}
               />
-              {ratingError && <FieldError>별점을 선택해 주세요</FieldError>}
+              {ratingError && <FieldError>만족도를 선택해 주세요</FieldError>}
             </Field>
             <Field>
-              <FieldLabel htmlFor="survey-comment">
-                의견 <span className="text-muted-foreground font-normal">(선택)</span>
+              <FieldLabel htmlFor="survey-comment" className="text-base font-semibold">
+                더 하고 싶은 말이 있나요?{' '}
+                <span className="text-muted-foreground text-sm font-normal">(선택)</span>
               </FieldLabel>
               <Textarea
                 id="survey-comment"
@@ -145,7 +151,8 @@ function SurveyForm({
                 value={comment}
                 disabled={submit.isPending}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="좋았던 점이나 아쉬웠던 점을 알려 주세요"
+                placeholder="자유롭게 남겨 주세요"
+                className="bg-muted border-transparent"
               />
               <FieldDescription className="text-right">
                 {comment.length} / {COMMENT_MAX}
@@ -158,9 +165,16 @@ function SurveyForm({
                   : '제출하지 못했습니다. 잠시 후 다시 시도해 주세요.'}
               </FieldError>
             )}
-            <Button type="submit" disabled={submit.isPending} className="w-full">
-              {submit.isPending ? '제출하는 중…' : '의견 보내기'}
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={submit.isPending}
+                className="w-full sm:w-auto"
+              >
+                {submit.isPending ? '제출하는 중…' : '의견 보내기'}
+              </Button>
+            </div>
           </FieldGroup>
         </form>
       </CardContent>

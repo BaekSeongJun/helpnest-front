@@ -58,49 +58,54 @@ export function DataTable<T>({
   if (loading) return <LoadingSkeleton variant="table" />;
 
   return (
-    <div className="space-y-3">
-      <div className="bg-card rounded-lg border">
-        <Table>
-          <TableHeader>
+    // 시안 A안: 카드 안에 회색 머리행, 페이지 이동은 카드 아래 막대
+    <div className="bg-card text-card-foreground overflow-hidden rounded-lg border shadow-xs">
+      <Table>
+        <TableHeader className="bg-muted">
+          <TableRow className="hover:bg-muted">
+            {columns.map((col, i) => (
+              <TableHead
+                key={i}
+                className={cn('text-muted-foreground h-10 text-xs font-medium', col.className)}
+              >
+                {col.header}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {!data?.length ? (
             <TableRow>
-              {columns.map((col, i) => (
-                <TableHead key={i} className={col.className}>
-                  {col.header}
-                </TableHead>
-              ))}
+              <TableCell colSpan={columns.length}>
+                <EmptyState title={emptyText} action={emptyAction} />
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {!data?.length ? (
-              <TableRow>
-                <TableCell colSpan={columns.length}>
-                  <EmptyState title={emptyText} action={emptyAction} />
-                </TableCell>
+          ) : (
+            data.map((row) => (
+              <TableRow
+                key={rowKey(row)}
+                onClick={onRowClick && (() => onRowClick(row))}
+                // 행 클릭을 키보드로도 (Enter)
+                onKeyDown={onRowClick && ((e) => e.key === 'Enter' && onRowClick(row))}
+                tabIndex={onRowClick ? 0 : undefined}
+                className={cn(onRowClick && 'cursor-pointer')}
+              >
+                {columns.map((col, i) => (
+                  <TableCell key={i} className={col.className}>
+                    {col.cell(row)}
+                  </TableCell>
+                ))}
               </TableRow>
-            ) : (
-              data.map((row) => (
-                <TableRow
-                  key={rowKey(row)}
-                  onClick={onRowClick && (() => onRowClick(row))}
-                  // 행 클릭을 키보드로도 (Enter)
-                  onKeyDown={onRowClick && ((e) => e.key === 'Enter' && onRowClick(row))}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  className={cn(onRowClick && 'cursor-pointer')}
-                >
-                  {columns.map((col, i) => (
-                    <TableCell key={i} className={col.className}>
-                      {col.cell(row)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
 
       {pagination && pagination.totalPages > 1 && !!data?.length && (
-        <nav aria-label="페이지" className="flex items-center justify-center gap-2">
+        <nav
+          aria-label="페이지"
+          className="text-muted-foreground flex h-11 items-center justify-end gap-2 border-t px-4 text-xs"
+        >
           <Button
             variant="outline"
             size="icon-sm"
@@ -110,7 +115,7 @@ export function DataTable<T>({
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span className="text-muted-foreground text-sm tabular-nums">
+          <span className="tabular-nums">
             {pagination.page + 1} / {pagination.totalPages}
           </span>
           <Button

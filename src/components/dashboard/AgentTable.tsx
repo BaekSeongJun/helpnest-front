@@ -24,8 +24,8 @@ export function AgentTable({ agents }: { agents: readonly AgentStat[] }) {
           <EmptyState title="활성 상담원이 없습니다." />
         ) : (
           <Table>
-            <TableHeader>
-              <TableRow>
+            <TableHeader className="bg-muted">
+              <TableRow className="hover:bg-muted">
                 <TableHead>상담원</TableHead>
                 <TableHead className="text-right">배정</TableHead>
                 <TableHead className="text-right">처리중</TableHead>
@@ -39,7 +39,15 @@ export function AgentTable({ agents }: { agents: readonly AgentStat[] }) {
             <TableBody>
               {agents.map((a) => (
                 <TableRow key={a.agentId}>
-                  <TableCell className="font-medium">{a.name}</TableCell>
+                  <TableCell>
+                    {/* 시안 A안: 이니셜 원 + 이름 */}
+                    <span className="flex items-center gap-2.5 font-medium">
+                      <span className="bg-secondary text-secondary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+                        {a.name.slice(0, 1)}
+                      </span>
+                      {a.name}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatNumber(a.assignedCount)}
                   </TableCell>
