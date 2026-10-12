@@ -4,6 +4,8 @@
 // 전이 가능 여부를 프론트에서 판정하지 않는다. 전이표를 복제하면 백엔드와 어긋나고,
 // 어긋난 쪽이 화면이면 상담원은 "되는데 안 된다"를 겪는다. 모든 상태를 후보로 내보내고
 // 서버의 TICKET_INVALID_TRANSITION 메시지를 그대로 보여 준다.
+// 예외는 "어떤 역할·어떤 현재 상태에서도 이 API 로는 갈 수 없는 값"뿐이다(NOT_SELECTABLE) —
+// 규칙 복제가 아니라 이 API 가 받는 값의 범위라 서버와 어긋날 여지가 없다(#79).
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,8 +35,16 @@ import type { TicketResponse, TicketStatus } from '@/types/ticket';
 /** 되돌리기 어려운 전이는 확인을 받는다 (08 §7) */
 const CONFIRM_REQUIRED: Partial<Record<TicketStatus, string>> = {
   RESOLVED: '해결 처리하면 고객에게 만족도 설문이 발송됩니다.',
-  CLOSED: '종료하면 이 티켓에 더 이상 답변할 수 없습니다.',
 };
+
+/**
+ * 상태 변경 API 로 직원이 고를 수 없는 값 (PRD 5장). 접수로 돌아가는 전이는 없고, 배정·재배정은
+ * 배정 API 로 하며, 종료는 고객 설문 제출·72시간 경과(SYSTEM)로만 된다.
+ */
+const NOT_SELECTABLE: ReadonlySet<TicketStatus> = new Set(['RECEIVED', 'ASSIGNED', 'CLOSED']);
+
+/** 해결 이후는 직원이 바꿀 수 있는 상태가 없다 — 재문의(고객)·자동 종료(SYSTEM)만 남는다 */
+const FINISHED: ReadonlySet<TicketStatus> = new Set(['RESOLVED', 'CLOSED']);
 
 export function TicketSidePanel({ ticket }: { ticket: TicketResponse }) {
   const { member } = useAuth();
@@ -135,31 +145,43 @@ export function TicketSidePanel({ ticket }: { ticket: TicketResponse }) {
           <CardTitle className="text-base">상태 변경</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Label htmlFor="next-status" className="sr-only">
-            변경할 상태
-          </Label>
-          <Select value={nextStatus} onValueChange={(v) => setNextStatus(v as TicketStatus)}>
-            <SelectTrigger id="next-status" className="w-full">
-              <SelectValue placeholder="변경할 상태" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(TICKET_STATUS_BADGE)
-                .filter(([key]) => key !== ticket.status)
-                .map(([key, style]) => (
-                  <SelectItem key={key} value={key}>
-                    {style.label}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-          <Button
-            className="w-full"
-            disabled={!nextStatus || statusMutation.isPending}
-            onClick={submitStatus}
-          >
-            {statusMutation.isPending && <Loader2 className="size-4 animate-spin" aria-hidden />}
-            변경
-          </Button>
+          {FINISHED.has(ticket.status) ? (
+            <p className="text-muted-foreground text-sm">
+              {ticket.status === 'RESOLVED'
+                ? '해결된 티켓은 고객 설문 제출 또는 72시간 뒤 자동 종료됩니다.'
+                : '종료된 티켓입니다. 고객이 다시 문의하면 새 티켓으로 접수됩니다.'}
+            </p>
+          ) : (
+            <>
+              <Label htmlFor="next-status" className="sr-only">
+                변경할 상태
+              </Label>
+              <Select value={nextStatus} onValueChange={(v) => setNextStatus(v as TicketStatus)}>
+                <SelectTrigger id="next-status" className="w-full">
+                  <SelectValue placeholder="변경할 상태" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(TICKET_STATUS_BADGE) as TicketStatus[])
+                    .filter((key) => key !== ticket.status && !NOT_SELECTABLE.has(key))
+                    .map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {TICKET_STATUS_BADGE[key].label}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <Button
+                className="w-full"
+                disabled={!nextStatus || statusMutation.isPending}
+                onClick={submitStatus}
+              >
+                {statusMutation.isPending && (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                )}
+                변경
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
