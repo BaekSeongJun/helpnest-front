@@ -2,7 +2,8 @@
 // 관리자 계정 관리 타입 (백엔드 domain/member/dto, docs/04 §2)
 import type { Role } from './auth';
 
-export type MemberStatus = 'ACTIVE' | 'INACTIVE';
+/** PENDING = 가입 후 이메일 인증 전 (로그인 불가) */
+export type MemberStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 
 /** GET /api/admin/members 행 */
 export interface AdminMember {

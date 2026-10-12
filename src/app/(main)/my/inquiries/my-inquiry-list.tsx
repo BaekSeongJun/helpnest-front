@@ -6,20 +6,34 @@ import { ChevronLeft, ChevronRight, PenSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { StatusBadge } from '@/components/common/badges';
+import { FilterBar } from '@/components/common/filter-bar';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
-import { CATEGORY_LABEL } from '@/config/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { CATEGORY_LABEL, TICKET_STATUS_BADGE } from '@/config/badge';
 import { formatDate } from '@/lib/format';
 import { getMyTickets, ticketKeys } from '@/lib/api/ticket';
+import type { TicketStatus } from '@/types/ticket';
 
-/**
- * 내 문의 목록 (CU-08, CUSTOMER). 최신 접수순.
- * ponytail: 상태 필터 없음 — GET /tickets/my 가 status 를 아직 받지 않는다(박민재 CR 보류). 받게 되면 FilterBar 추가
- */
+const ALL = 'ALL';
+
+/** 내 문의 목록 (CU-08, CUSTOMER). 최신 접수순, 상태 필터(back #116) */
 export function MyInquiryList() {
   const [page, setPage] = useState(0);
-  const query = { page };
+  const [status, setStatus] = useState<TicketStatus | typeof ALL>(ALL);
+  const query = { page, status: status === ALL ? undefined : status };
+
+  function changeStatus(next: TicketStatus | typeof ALL) {
+    setStatus(next);
+    setPage(0);
+  }
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ticketKeys.my(query),
     queryFn: () => getMyTickets(query),
@@ -40,13 +54,28 @@ export function MyInquiryList() {
           </Button>
         }
       />
+      <FilterBar onReset={() => changeStatus(ALL)}>
+        <Select value={status} onValueChange={(v) => changeStatus(v as TicketStatus | typeof ALL)}>
+          <SelectTrigger className="w-32" aria-label="상태">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>전체 상태</SelectItem>
+            {Object.entries(TICKET_STATUS_BADGE).map(([value, { label }]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FilterBar>
       {isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : isPending ? (
         <LoadingSkeleton variant="card" count={3} />
       ) : !data.content.length ? (
         <EmptyState
-          title="아직 남긴 문의가 없습니다"
+          title={status === ALL ? '아직 남긴 문의가 없습니다' : '해당 상태의 문의가 없습니다'}
           action={
             <Button asChild variant="outline" size="sm">
               <Link href="/inquiry/new">문의하기</Link>

@@ -2,30 +2,28 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Minus, Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
-import { PlainText } from '@/components/common/plain-text';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CATEGORY_LABEL } from '@/config/badge';
-import { faqKeys, getFaq, getFaqs } from '@/lib/api/faq';
+import { faqKeys, getFaqs } from '@/lib/api/faq';
 import type { TicketCategory } from '@/types/ticket';
+import { FaqAccordion } from './faq-accordion';
 
 const ALL = 'ALL';
 // ponytail: 유형별 몇 개 수준이라 한 번에 받는다. 수백 건이 되면 페이지 버튼 추가
 const PAGE_SIZE = 100;
 
-/** 고객 FAQ (CU-02). 유형 탭 + 키워드 검색 + 아코디언(열 때 조회수 +1) */
-export function FaqList() {
+/** 고객 FAQ (CU-02). 유형 탭 + 키워드 검색 + 아코디언. initialKeyword 는 홈 검색창에서 넘어온 값 */
+export function FaqList({ initialKeyword = '' }: { initialKeyword?: string }) {
   const [category, setCategory] = useState<TicketCategory | typeof ALL>(ALL);
-  const [input, setInput] = useState('');
-  const [keyword, setKeyword] = useState('');
-  // 같은 화면에서 여러 번 열고 닫아도 조회수는 한 번만
-  const counted = useRef(new Set<number>());
+  const [input, setInput] = useState(initialKeyword);
+  const [keyword, setKeyword] = useState(initialKeyword.trim());
 
   const query = { category: category === ALL ? undefined : category, keyword, size: PAGE_SIZE };
   const { data, isPending, isError, refetch } = useQuery({
@@ -33,12 +31,6 @@ export function FaqList() {
     queryFn: () => getFaqs(query),
     placeholderData: keepPreviousData,
   });
-
-  function handleToggle(faqId: number, open: boolean) {
-    if (!open || counted.current.has(faqId)) return;
-    counted.current.add(faqId);
-    getFaq(faqId).catch(() => {}); // 조회수는 실패해도 화면에 영향 없음
-  }
 
   return (
     <div>
@@ -85,34 +77,7 @@ export function FaqList() {
           description="다른 검색어로 찾아보거나 문의를 남겨 주세요."
         />
       ) : (
-        // 시안 A안: 질문마다 카드, 오른쪽 둥근 +/− 버튼
-        <ul className="space-y-2">
-          {data.content.map((faq) => (
-            <li key={faq.faqId} className="bg-card rounded-lg border shadow-xs">
-              <details
-                className="group"
-                onToggle={(e) => handleToggle(faq.faqId, e.currentTarget.open)}
-              >
-                <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 py-1 pr-1 pl-5 [&::-webkit-details-marker]:hidden">
-                  <span className="text-muted-foreground w-20 shrink-0 text-xs font-semibold">
-                    {CATEGORY_LABEL[faq.category]}
-                  </span>
-                  <span className="flex-1 text-sm font-medium">{faq.question}</span>
-                  <span
-                    className="bg-muted text-foreground group-open:bg-foreground group-open:text-background flex size-10 shrink-0 items-center justify-center rounded-full"
-                    aria-hidden
-                  >
-                    <Plus className="size-4 group-open:hidden" />
-                    <Minus className="hidden size-4 group-open:block" />
-                  </span>
-                </summary>
-                <div className="text-secondary-foreground px-5 pt-1 pb-4 text-sm leading-relaxed sm:pl-[6.75rem]">
-                  <PlainText text={faq.answer} />
-                </div>
-              </details>
-            </li>
-          ))}
-        </ul>
+        <FaqAccordion faqs={data.content} />
       )}
 
       <div className="bg-accent mt-8 flex flex-col gap-3 rounded-lg px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
