@@ -59,7 +59,7 @@ export function DataTable<T>({
 
   return (
     // 시안 A안: 카드 안에 회색 머리행, 페이지 이동은 카드 아래 막대
-    <div className="bg-card text-card-foreground overflow-hidden rounded-lg border shadow-xs">
+    <div className="bg-card text-card-foreground overflow-hidden rounded-xl">
       <Table>
         <TableHeader className="bg-muted">
           <TableRow className="hover:bg-muted">
