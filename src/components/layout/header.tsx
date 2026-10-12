@@ -25,6 +25,7 @@ import { Logo } from './logo';
 import { useConsoleShell } from './use-console-shell';
 import { NotificationBellSlot } from './notification-bell-slot';
 import { SidebarNav } from './sidebar-nav';
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   const { status, member } = useAuth();
@@ -39,7 +40,7 @@ export function Header() {
   }
 
   return (
-    <header className="bg-background sticky top-0 z-40 flex h-14 items-center gap-2 border-b px-4">
+    <header className="bg-background/90 sticky top-0 z-40 flex h-18 items-center gap-2 px-4 backdrop-blur md:px-6">
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="md:hidden" aria-label="메뉴 열기">
@@ -63,7 +64,7 @@ export function Header() {
       {isConsole && status === 'authenticated' && member && (
         <form
           role="search"
-          className="text-muted-foreground border-input focus-within:ring-ring/50 hidden h-9 max-w-md flex-1 items-center gap-2 rounded-md border px-3 focus-within:ring-3 md:flex"
+          className="text-muted-foreground bg-card focus-within:ring-ring/50 hidden h-11 max-w-md flex-1 items-center gap-2 rounded-full pr-1.5 pl-5 focus-within:ring-3 md:flex"
           onSubmit={(e) => {
             e.preventDefault();
             const keyword = new FormData(e.currentTarget).get('keyword')?.toString().trim();
@@ -72,17 +73,24 @@ export function Header() {
             router.push(`/console/tickets?${new URLSearchParams({ tab, keyword })}`);
           }}
         >
-          <Search className="size-4 shrink-0" aria-hidden="true" />
           <input
             name="keyword"
             placeholder="티켓 번호·제목·내용 검색"
             aria-label="티켓 검색"
             className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
           />
+          <button
+            type="submit"
+            aria-label="검색"
+            className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full"
+          >
+            <Search className="size-4" aria-hidden="true" />
+          </button>
         </form>
       )}
 
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         {status === 'loading' && <Skeleton className="size-8 rounded-full" />}
 
         {status === 'anonymous' && (
@@ -90,7 +98,8 @@ export function Header() {
             <Button asChild variant="ghost">
               <Link href="/login">로그인</Link>
             </Button>
-            <Button asChild>
+            {/* 좁은 화면에서는 헤더가 넘쳐서 숨긴다 — 회원가입은 로그인 화면에서도 갈 수 있다 */}
+            <Button asChild className="hidden sm:inline-flex">
               <Link href="/signup">회원가입</Link>
             </Button>
           </>
@@ -104,7 +113,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-auto gap-2 rounded-full px-1 py-1 md:rounded-md md:pr-2"
+                  className="bg-card h-auto gap-2 rounded-full px-1 py-1 md:pr-3"
                   aria-label="사용자 메뉴"
                 >
                   <Avatar className="size-8">
