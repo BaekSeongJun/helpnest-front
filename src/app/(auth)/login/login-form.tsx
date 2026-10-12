@@ -14,6 +14,7 @@ import { login } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/use-auth';
 import type { Role } from '@/types/auth';
+import { VerifyEmailNotice } from '../verify-email-notice';
 import { type LoginValues, loginSchema } from './schema';
 
 /** ?next= 가 같은 사이트 경로일 때만 사용 (//evil.com 같은 외부 이동 차단), 없으면 역할별 기본 화면 */
@@ -27,6 +28,7 @@ export function LoginForm() {
   const router = useRouter();
   const { status, member } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -43,11 +45,17 @@ export function LoginForm() {
     try {
       await login(values.email, values.password);
     } catch (e) {
+      if (e instanceof ApiError && e.code === 'AUTH_EMAIL_NOT_VERIFIED') {
+        setVerifyEmail(values.email);
+        return;
+      }
       setServerError(
         e instanceof ApiError ? e.message : '로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
       );
     }
   }
+
+  if (verifyEmail) return <VerifyEmailNotice email={verifyEmail} />;
 
   return (
     <Card>
