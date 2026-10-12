@@ -14,6 +14,7 @@ import { login, signup } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/use-auth';
 import { redirectTarget } from '../login/login-form';
+import { SocialButtons } from '../social-buttons';
 import { VerifyEmailNotice } from '../verify-email-notice';
 import { type SignupValues, signupSchema } from './schema';
 
@@ -140,6 +141,7 @@ export function SignupForm() {
             </Button>
           </FieldGroup>
         </form>
+        <SocialButtons />
         <p className="text-muted-foreground mt-6 text-center text-sm">
           이미 계정이 있으신가요?{' '}
           <Link href="/login" className="text-foreground underline-offset-4 hover:underline">
