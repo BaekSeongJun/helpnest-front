@@ -53,7 +53,7 @@ export function MyProfile() {
   if (!member) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <PageHeader title="내 정보" />
       <div className="flex flex-col gap-6">
         <ProfileCard member={member} />
