@@ -28,6 +28,11 @@ export async function updateProfile(req: { name: string; phone: string }): Promi
 }
 
 /** 비밀번호 변경 (CU-10). 서버가 Refresh 를 모두 폐기하므로 호출 쪽에서 로그아웃 처리 */
+/** 회원 탈퇴 (고객 전용). 서버가 계정을 비활성화하고 Refresh 를 폐기한다 — 호출 뒤 logout() 으로 화면도 정리한다 */
+export function withdraw(): Promise<void> {
+  return apiFetch<void>('/members/me', { method: 'DELETE' });
+}
+
 export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
   return apiFetch<void>('/members/me/password', {
     method: 'PATCH',
