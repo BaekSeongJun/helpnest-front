@@ -44,3 +44,16 @@ export interface ChatError {
   code: string;
   message: string;
 }
+
+/** AI 상담 한 턴 (POST /ai/chat 의 history 항목, docs/04 §12) */
+export interface AiChatTurn {
+  role: 'USER' | 'AI';
+  content: string;
+}
+
+/** AI 상담 응답. 근거가 없거나 LLM 이 실패해도 오류가 아니라 handoff=true 로 온다 */
+export interface AiChatResponse {
+  answer: string;
+  references: { faqId: number; question: string }[];
+  handoff: boolean;
+}

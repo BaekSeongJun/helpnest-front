@@ -13,10 +13,17 @@ import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/sta
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CHAT_STATUS_BADGE } from '@/config/badge';
-import { CHAT_WAIT_LIMIT_MS, cancelChat, convertChat, getChatRooms, requestChat } from '@/lib/api/chat';
+import {
+  CHAT_WAIT_LIMIT_MS,
+  cancelChat,
+  convertChat,
+  getChatRooms,
+  requestChat,
+} from '@/lib/api/chat';
 import { getAccessToken } from '@/lib/api/client';
 import { activateStomp, subscribeStomp } from '@/lib/ws/stompClient';
 import type { ChatStatusPayload } from '@/types/chat';
+import { AiStep } from './ai-step';
 
 /** 진행 중 방의 현재 상태. 없으면 null — 새로 시작할 수 있는 상태다 */
 const CURRENT_KEY = ['chat', 'current'] as const;
@@ -33,15 +40,16 @@ async function loadCurrent(): Promise<ChatStatusPayload | null> {
 }
 
 /**
- * CU-09 1:1 채팅 (FR-CHT-01·04·05).
- * [상담 시작] → 대기(순번·경과 시간) → 5분 초과 시 [문의로 남기기][계속 기다리기][나가기]
+ * CU-09 1:1 채팅 (FR-CHT-01·04·05·07).
+ * AI 상담 → [상담원 연결] → 대기(순번·경과 시간) → 5분 초과 시 [문의로 남기기][계속 기다리기][나가기]
  * → 상담(상담원 이름·대화) → 종료. 상태 전환은 `/user/queue/chat-status` 푸시로 받는다.
  */
 export function CustomerChat() {
   const queryClient = useQueryClient();
   const [convertedTicketNo, setConvertedTicketNo] = useState<string | null>(null);
   const current = useQuery({ queryKey: CURRENT_KEY, queryFn: loadCurrent });
-  const setCurrent = (payload: ChatStatusPayload | null) => queryClient.setQueryData(CURRENT_KEY, payload);
+  const setCurrent = (payload: ChatStatusPayload | null) =>
+    queryClient.setQueryData(CURRENT_KEY, payload);
 
   useEffect(() => {
     activateStomp(getAccessToken);
@@ -51,7 +59,7 @@ export function CustomerChat() {
   }, [queryClient]);
 
   const start = useMutation({
-    mutationFn: requestChat,
+    mutationFn: (aiTranscript?: string) => requestChat(aiTranscript),
     onSuccess: (payload) => {
       setConvertedTicketNo(null);
       setCurrent(payload);
@@ -59,7 +67,12 @@ export function CustomerChat() {
     onError: (error) => toast.error(error.message),
   });
 
-  const header = <PageHeader title="1:1 채팅 상담" description="상담원과 실시간으로 대화합니다." />;
+  const header = (
+    <PageHeader
+      title="1:1 채팅 상담"
+      description="AI가 먼저 답하고, 필요하면 상담원과 실시간으로 대화합니다."
+    />
+  );
 
   if (current.isPending) {
     return (
@@ -79,11 +92,6 @@ export function CustomerChat() {
   }
 
   const room = current.data;
-  const startButton = (
-    <Button onClick={() => start.mutate()} disabled={start.isPending}>
-      {start.isPending ? '연결 중…' : '상담 시작'}
-    </Button>
-  );
 
   if (convertedTicketNo) {
     return (
@@ -103,15 +111,14 @@ export function CustomerChat() {
     );
   }
 
+  // 진행 중 방이 없을 때만 AI 상담부터 — 있으면 위 loadCurrent 가 그 방으로 바로 들여보낸다
   if (!room || room.status === 'CANCELED' || room.status === 'CONVERTED') {
     return (
       <div>
         {header}
-        <EmptyState
-          icon={MessageCircle}
-          title="상담원과 1:1로 대화해 보세요"
-          description="상담원이 모두 상담 중이면 순서대로 연결해 드립니다."
-          action={startButton}
+        <AiStep
+          onConnect={(aiTranscript) => start.mutate(aiTranscript)}
+          connecting={start.isPending}
         />
       </div>
     );
@@ -125,13 +132,24 @@ export function CustomerChat() {
       {header}
       {/* 시안 A안: 상담원 아바타·이름 + 상태 배지 머리줄 */}
       <div className="bg-card flex items-center gap-3 rounded-lg border px-5 py-3.5 shadow-xs">
-        <span className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold" aria-hidden="true">
+        <span
+          className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+          aria-hidden="true"
+        >
           {(room.agentName ?? 'H').slice(0, 1)}
         </span>
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="font-semibold">{room.status === 'OPEN' && room.agentName ? `${room.agentName} 상담원` : 'HelpNest 상담'}</span>
+          <span className="font-semibold">
+            {room.status === 'OPEN' && room.agentName
+              ? `${room.agentName} 상담원`
+              : 'HelpNest 상담'}
+          </span>
           <span className="text-muted-foreground text-xs">
-            {room.status === 'OPEN' ? '상담원과 연결되었습니다' : room.status === 'CLOSED' ? '상담이 종료되었습니다' : '상담원 연결을 기다리고 있어요'}
+            {room.status === 'OPEN'
+              ? '상담원과 연결되었습니다'
+              : room.status === 'CLOSED'
+                ? '상담이 종료되었습니다'
+                : '상담원 연결을 기다리고 있어요'}
           </span>
         </div>
         <Badge className={badge.className}>
@@ -161,7 +179,11 @@ export function CustomerChat() {
         }
       />
 
-      {room.status === 'CLOSED' && <div className="flex justify-center">{startButton}</div>}
+      {room.status === 'CLOSED' && (
+        <div className="flex justify-center">
+          <Button onClick={() => setCurrent(null)}>새 상담 시작</Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -209,7 +231,8 @@ function WaitingPanel({ room, onConverted, onCanceled }: WaitingPanelProps) {
       {timedOut && !keepWaiting && (
         <div className="bg-warning/10 flex flex-col gap-3 rounded-md p-3" role="alert">
           <p className="text-sm">
-            대기 시간이 5분을 넘었습니다. 남긴 메시지로 문의를 접수하면 답변을 메일과 내 문의에서 받을 수 있습니다.
+            대기 시간이 5분을 넘었습니다. 남긴 메시지로 문의를 접수하면 답변을 메일과 내 문의에서
+            받을 수 있습니다.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => convert.mutate()} disabled={convert.isPending}>
