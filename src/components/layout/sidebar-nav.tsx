@@ -44,10 +44,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-9 items-center gap-2 rounded-md px-2 text-sm transition-colors',
+                  'flex h-10 items-center gap-3 rounded-full px-3.5 text-sm transition-colors',
+                  // 선택 메뉴는 주색으로 채운 알약
                   active
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent/60',
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold'
+                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                 )}
               >
                 <Icon className="size-4" />
