@@ -29,7 +29,7 @@ export default async function InquiryCompletePage({
 
   const isGuest = guest === '1';
   return (
-    <div className="max-w-lg">
+    <div className="mx-auto max-w-lg">
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
           <CircleCheck className="text-success size-12" aria-hidden />

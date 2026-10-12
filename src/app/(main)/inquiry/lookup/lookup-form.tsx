@@ -77,7 +77,7 @@ function LookupFormBody() {
   }
 
   return (
-    <div className="max-w-md">
+    <div className="mx-auto max-w-md">
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">비회원 문의 조회</CardTitle>

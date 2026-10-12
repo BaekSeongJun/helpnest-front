@@ -7,7 +7,8 @@ import { useConsoleShell } from './use-console-shell';
 
 /**
  * 모든 화면이 같은 앱형 셸을 쓴다 (front #74): 헤더 + 240px 사이드바 + 본문.
- * 콘솔은 표가 넓어 본문을 전체 폭으로, 고객 화면은 글·폼이 대부분이라 읽기 좋은 폭(896px)으로 제한한다.
+ * 콘솔은 표가 넓어 본문을 전체 폭으로, 고객 화면은 글·폼이 대부분이라 1024px 로 묶어 가운데에 둔다
+ * (넓은 모니터에서 한쪽만 비거나 입력칸이 끝까지 늘어나지 않게).
  * 모바일(md 미만)은 사이드바 대신 헤더의 Sheet 메뉴.
  */
 export function MainShell({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,7 @@ export function MainShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
         <main className="min-w-0 flex-1 p-4 md:p-6">
-          {isConsole ? children : <div className="w-full max-w-4xl">{children}</div>}
+          {isConsole ? children : <div className="mx-auto w-full max-w-5xl">{children}</div>}
         </main>
       </div>
     </>
