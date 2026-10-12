@@ -53,9 +53,9 @@ export function MyProfile() {
   if (!member) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div>
       <PageHeader title="내 정보" />
-      <div className="flex flex-col gap-6">
+      <div className="grid items-start gap-6 lg:grid-cols-2">
         <ProfileCard member={member} />
         <PasswordCard />
         {member.role === 'CUSTOMER' && <WithdrawCard />}
