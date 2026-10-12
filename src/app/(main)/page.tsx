@@ -1,4 +1,9 @@
-// @owner BSJ — 임시 홈. CU-01(FAQ 검색·바로가기 카드)은 S1에서 채운다
-export default function Home() {
-  return <h1 className="text-2xl font-semibold">HelpNest</h1>;
+// @owner BSJ
+import type { Metadata } from 'next';
+import { Home } from './home';
+
+export const metadata: Metadata = { title: 'HelpNest 고객센터' };
+
+export default function HomePage() {
+  return <Home />;
 }

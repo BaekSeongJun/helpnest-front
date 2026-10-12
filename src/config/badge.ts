@@ -110,6 +110,7 @@ export const ROLE_LABEL = {
 export const MEMBER_STATUS_BADGE = {
   ACTIVE: { label: '활성', className: tone.success },
   INACTIVE: { label: '비활성', className: tone.muted },
+  PENDING: { label: '인증 대기', className: tone.info },
 } as const satisfies Record<MemberStatus, BadgeStyle>;
 
 export const AI_BADGE: BadgeStyle = {
