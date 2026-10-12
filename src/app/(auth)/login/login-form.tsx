@@ -14,6 +14,7 @@ import { login } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/use-auth';
 import type { Role } from '@/types/auth';
+import { SocialButtons } from '../social-buttons';
 import { VerifyEmailNotice } from '../verify-email-notice';
 import { type LoginValues, loginSchema } from './schema';
 
@@ -24,10 +25,10 @@ export function redirectTarget(role: Role) {
   return role === 'CUSTOMER' ? '/' : '/console/tickets';
 }
 
-export function LoginForm() {
+export function LoginForm({ initialError = null }: { initialError?: string | null }) {
   const router = useRouter();
   const { status, member } = useAuth();
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(initialError);
   const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
   const {
     register,
@@ -94,6 +95,7 @@ export function LoginForm() {
             </Button>
           </FieldGroup>
         </form>
+        <SocialButtons />
         <div className="text-muted-foreground mt-6 flex justify-center gap-3 text-sm">
           <Link href="/forgot-password" className="hover:text-foreground">
             비밀번호 찾기
