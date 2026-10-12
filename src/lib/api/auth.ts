@@ -33,6 +33,11 @@ export function signup(req: SignupRequest): Promise<Member> {
   return apiFetch<Member>('/auth/signup', { method: 'POST', body: req });
 }
 
+/** 인증 메일 재발송. 가입·인증 여부와 무관하게 항상 성공 응답 */
+export function resendVerificationMail(email: string): Promise<void> {
+  return apiFetch<void>('/auth/email/resend', { method: 'POST', body: { email } });
+}
+
 /** 비밀번호 찾기 (CM-03). 가입 여부와 무관하게 항상 성공 응답 */
 export function requestPasswordReset(email: string): Promise<void> {
   return apiFetch<void>('/auth/password/reset-request', { method: 'POST', body: { email } });

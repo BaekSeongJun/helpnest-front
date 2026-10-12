@@ -14,13 +14,18 @@ import { login, signup } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/use-auth';
 import { redirectTarget } from '../login/login-form';
+import { VerifyEmailNotice } from '../verify-email-notice';
 import { type SignupValues, signupSchema } from './schema';
 
-/** 고객 회원가입 (CM-02). 성공하면 같은 계정으로 바로 로그인 → ?next 또는 홈 */
+/**
+ * 고객 회원가입 (CM-02). 성공하면 같은 계정으로 바로 로그인 → ?next 또는 홈.
+ * 서버가 이메일 인증을 요구하면(로그인이 AUTH_EMAIL_NOT_VERIFIED) 인증 안내로 바꾼다
+ */
 export function SignupForm() {
   const router = useRouter();
   const { status, member } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -52,11 +57,17 @@ export function SignupForm() {
     }
     try {
       await login(email, password);
-    } catch {
+    } catch (e) {
+      if (e instanceof ApiError && e.code === 'AUTH_EMAIL_NOT_VERIFIED') {
+        setVerifyEmail(email);
+        return;
+      }
       // 가입은 됐으므로 로그인 화면에서 다시 시도하게 한다 (요청 제한 등)
       router.replace('/login');
     }
   }
+
+  if (verifyEmail) return <VerifyEmailNotice email={verifyEmail} />;
 
   return (
     <Card>
