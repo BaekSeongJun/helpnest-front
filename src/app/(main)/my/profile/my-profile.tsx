@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { ConfirmDialog } from '@/components/common/confirm-dialog';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/c
 import { Input } from '@/components/ui/input';
 import { logout } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
-import { changePassword, updateProfile } from '@/lib/api/member';
+import { changePassword, updateProfile, withdraw } from '@/lib/api/member';
 import { useAuth } from '@/lib/auth/use-auth';
 import type { Member } from '@/types/auth';
 
@@ -57,6 +58,7 @@ export function MyProfile() {
       <div className="flex flex-col gap-6">
         <ProfileCard member={member} />
         <PasswordCard />
+        {member.role === 'CUSTOMER' && <WithdrawCard />}
       </div>
     </div>
   );
@@ -207,6 +209,45 @@ function PasswordCard() {
             </Button>
           </FieldGroup>
         </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** 회원 탈퇴 (고객 전용). 직원 계정은 관리자가 계정 관리에서 비활성화한다 */
+function WithdrawCard() {
+  const router = useRouter();
+
+  async function onConfirm() {
+    try {
+      await withdraw();
+    } catch (e) {
+      toast.error(errorMessage(e, '탈퇴하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
+      throw e; // 대화상자를 열어 둔다
+    }
+    await logout().catch(() => {});
+    toast.success('탈퇴 처리되었습니다. 이용해 주셔서 감사합니다.');
+    router.replace('/');
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">회원 탈퇴</CardTitle>
+        <CardDescription>
+          탈퇴하면 이 계정으로 다시 로그인할 수 없고, 같은 이메일로 다시 가입할 수 없어요. 남긴 문의
+          내역은 상담 기록으로 보관됩니다.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ConfirmDialog
+          title="정말 탈퇴할까요?"
+          description="탈퇴하면 되돌릴 수 없고, 같은 이메일로 다시 가입할 수 없습니다."
+          confirmText="탈퇴"
+          destructive
+          onConfirm={onConfirm}
+          trigger={<Button variant="outline">회원 탈퇴</Button>}
+        />
       </CardContent>
     </Card>
   );
