@@ -27,7 +27,7 @@ const requestSchema = z.object({
 
 export function GuestReset({ token }: { token: string }) {
   return (
-    <div className="max-w-md">
+    <div className="mx-auto max-w-md">
       {token ? <NewPassword token={token} /> : <RequestMail />}
     </div>
   );
