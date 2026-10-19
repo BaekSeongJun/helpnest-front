@@ -117,8 +117,8 @@ export function AiStep({ onConnect, connecting }: AiStepProps) {
 
       <div
         className={cn(
-          'flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4',
-          handoff && 'border-primary bg-primary/5',
+          'bg-card flex flex-wrap items-center justify-between gap-3 rounded-xl p-4',
+          handoff && 'bg-primary/10',
         )}
         role={handoff ? 'alert' : undefined}
       >
