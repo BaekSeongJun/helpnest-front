@@ -126,7 +126,7 @@ function Shortcuts({ items, className }: { items: Shortcut[]; className?: string
         <Link
           key={href}
           href={href}
-          className="bg-card hover:bg-accent focus-visible:ring-ring flex items-center gap-3 rounded-lg border p-4 shadow-xs transition-colors outline-none focus-visible:ring-2"
+          className="bg-card hover:bg-accent focus-visible:ring-ring flex items-center gap-3 rounded-xl p-4 transition-colors outline-none focus-visible:ring-2"
         >
           <Icon className="text-primary size-5 shrink-0" aria-hidden />
           <span className="min-w-0">
