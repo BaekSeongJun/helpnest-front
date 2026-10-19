@@ -117,7 +117,7 @@ export function ChatWindow({ roomId, canSend, notice, draft, onDraftChange }: Ch
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="bg-card h-96 overflow-y-auto rounded-lg border p-5 shadow-xs" aria-live="polite">
+      <div className="bg-card h-96 overflow-y-auto rounded-xl p-5" aria-live="polite">
         {history.hasNextPage && (
           <div className="mb-3 text-center">
             <Button

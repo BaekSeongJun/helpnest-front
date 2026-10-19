@@ -131,7 +131,7 @@ export function CustomerChat() {
     <div className="flex flex-col gap-4">
       {header}
       {/* 시안 A안: 상담원 아바타·이름 + 상태 배지 머리줄 */}
-      <div className="bg-card flex items-center gap-3 rounded-lg border px-5 py-3.5 shadow-xs">
+      <div className="bg-card flex items-center gap-3 rounded-xl px-5 py-3.5">
         <span
           className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
           aria-hidden="true"
@@ -217,7 +217,7 @@ function WaitingPanel({ room, onConverted, onCanceled }: WaitingPanelProps) {
   });
 
   return (
-    <div className="bg-card flex flex-col gap-3 rounded-lg border p-4">
+    <div className="bg-card flex flex-col gap-3 rounded-xl p-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span>
           대기 순번 <strong className="tabular-nums">{room.position ?? '-'}</strong>번
