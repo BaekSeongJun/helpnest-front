@@ -98,7 +98,7 @@ export function CustomerHistoryView({ customerKey }: { customerKey: string }) {
               onRowClick={(r) => router.push(`/console/tickets/${r.ticketId}`)}
             />
           </div>
-          <aside className="bg-card flex w-full shrink-0 flex-col items-center gap-1 rounded-lg border p-6 text-center shadow-xs lg:w-80">
+          <aside className="bg-card flex w-full shrink-0 flex-col items-center gap-1 rounded-xl p-6 text-center lg:w-80">
             <span className="bg-secondary text-secondary-foreground mb-2 flex size-16 items-center justify-center rounded-full text-xl font-semibold">
               {title.slice(0, 1)}
             </span>

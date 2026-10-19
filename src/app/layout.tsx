@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    // suppressHydrationWarning: next-themes 가 렌더 전에 <html> 에 테마 클래스를 붙인다
+    <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
         <Providers>
           <TooltipProvider>{children}</TooltipProvider>

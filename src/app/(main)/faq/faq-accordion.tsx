@@ -22,7 +22,7 @@ export function FaqAccordion({ faqs }: { faqs: Faq[] }) {
   return (
     <ul className="space-y-2">
       {faqs.map((faq) => (
-        <li key={faq.faqId} className="bg-card rounded-lg border shadow-xs">
+        <li key={faq.faqId} className="bg-card rounded-xl">
           <details
             className="group"
             onToggle={(e) => handleToggle(faq.faqId, e.currentTarget.open)}

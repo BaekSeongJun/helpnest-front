@@ -3,6 +3,7 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query';
 import {
+  ChevronRight,
   ClipboardList,
   HelpCircle,
   LogIn,
@@ -12,9 +13,7 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/components/common/badges';
-import { DataTable, type DataTableColumn } from '@/components/common/data-table';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/common/states';
 import { Button } from '@/components/ui/button';
@@ -25,8 +24,10 @@ import { faqKeys, getFaqs } from '@/lib/api/faq';
 import { getMyTickets, ticketKeys } from '@/lib/api/ticket';
 import { useAuth } from '@/lib/auth/use-auth';
 import { formatDate } from '@/lib/format';
-import type { TicketListItem, TicketStatus } from '@/types/ticket';
+import { cn } from '@/lib/utils';
+import type { TicketStatus } from '@/types/ticket';
 import { FaqAccordion } from './faq/faq-accordion';
+import { Landing } from './landing';
 
 interface Shortcut {
   href: string;
@@ -68,6 +69,15 @@ const PUBLIC_SHORTCUTS: Shortcut[] = [
 export function Home() {
   const { status, member } = useAuth();
 
+  // 비로그인: 소개 화면(전체 폭) + 바로가기·자주 묻는 질문. 셸이 이 화면에서는 사이드바와 폭 제한을 뺀다
+  if (status === 'anonymous') {
+    return (
+      <Landing>
+        <PublicHome anonymous />
+      </Landing>
+    );
+  }
+
   return (
     <div>
       <PageHeader
@@ -100,20 +110,23 @@ export function Home() {
       ) : member?.role === 'CUSTOMER' ? (
         <MemberHome />
       ) : (
-        <PublicHome anonymous={status === 'anonymous'} />
+        <PublicHome anonymous={false} />
       )}
     </div>
   );
 }
 
-function Shortcuts({ items }: { items: Shortcut[] }) {
+function Shortcuts({ items, className }: { items: Shortcut[]; className?: string }) {
   return (
-    <nav aria-label="바로가기" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <nav
+      aria-label="바로가기"
+      className={cn('grid gap-3 sm:grid-cols-2 lg:grid-cols-3', className)}
+    >
       {items.map(({ href, icon: Icon, title, description }) => (
         <Link
           key={href}
           href={href}
-          className="bg-card hover:bg-accent focus-visible:ring-ring flex items-center gap-3 rounded-lg border p-4 shadow-xs transition-colors outline-none focus-visible:ring-2"
+          className="bg-card hover:bg-accent focus-visible:ring-ring flex items-center gap-3 rounded-xl p-4 transition-colors outline-none focus-visible:ring-2"
         >
           <Icon className="text-primary size-5 shrink-0" aria-hidden />
           <span className="min-w-0">
@@ -146,24 +159,8 @@ const SUMMARY: { label: string; statuses: TicketStatus[] }[] = [
 const COUNT_STATUSES = SUMMARY.flatMap((s) => s.statuses);
 const RECENT = { size: 5 };
 
-const RECENT_COLUMNS: DataTableColumn<TicketListItem>[] = [
-  {
-    header: '번호',
-    className: 'w-44',
-    cell: (t) => <span className="font-mono text-xs">{t.ticketNo}</span>,
-  },
-  { header: '제목', cell: (t) => <span className="font-medium">{t.title}</span> },
-  { header: '상태', className: 'w-24', cell: (t) => <StatusBadge status={t.status} /> },
-  {
-    header: '접수일',
-    className: 'w-28',
-    cell: (t) => <span className="tabular-nums">{formatDate(t.createdAt)}</span>,
-  },
-];
-
 /** 로그인 고객: 상태별 건수(목록 API 의 totalElements — 전용 집계 API 없음) + 최근 문의 5건 */
 function MemberHome() {
-  const router = useRouter();
   const counts = useQueries({
     queries: COUNT_STATUSES.map((status) => ({
       queryKey: ticketKeys.my({ status, size: 1 }),
@@ -196,23 +193,51 @@ function MemberHome() {
         ))}
       </section>
 
-      <section>
-        <SectionTitle title="최근 문의" href="/my/inquiries" />
-        {recent.isError ? (
-          <ErrorState onRetry={() => recent.refetch()} />
-        ) : (
-          <DataTable
-            columns={RECENT_COLUMNS}
-            data={recent.data?.content}
-            rowKey={(t) => t.ticketId}
-            loading={recent.isPending}
-            emptyText="아직 남긴 문의가 없습니다"
-            onRowClick={(t) => router.push(`/my/inquiries/${t.ticketId}`)}
-          />
-        )}
-      </section>
+      <div className="grid items-start gap-6 lg:grid-cols-3">
+        {/* 최근 문의: 표 대신 큼직한 목록 — 건수가 적어도 자리를 지키도록 최소 높이를 둔다 */}
+        <section className="bg-card min-h-80 min-w-0 rounded-xl p-5 lg:col-span-2">
+          <SectionTitle title="최근 문의" href="/my/inquiries" />
+          {recent.isPending ? (
+            <LoadingSkeleton variant="table" count={3} />
+          ) : recent.isError ? (
+            <ErrorState onRetry={() => recent.refetch()} />
+          ) : !recent.data.content.length ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="아직 남긴 문의가 없습니다"
+              description="궁금한 점을 남기면 진행 상황을 여기에서 확인할 수 있어요."
+            />
+          ) : (
+            <ul className="divide-y">
+              {recent.data.content.map((t) => (
+                <li key={t.ticketId}>
+                  <Link
+                    href={`/my/inquiries/${t.ticketId}`}
+                    className="hover:bg-muted focus-visible:ring-ring -mx-2 flex items-center gap-4 rounded-lg px-2 py-4 transition-colors outline-none focus-visible:ring-2"
+                  >
+                    <span
+                      className="bg-accent text-accent-foreground flex size-11 shrink-0 items-center justify-center rounded-full"
+                      aria-hidden
+                    >
+                      <ClipboardList className="size-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-base font-medium">{t.title}</span>
+                      <span className="text-muted-foreground mt-0.5 block text-xs">
+                        <span className="font-mono">{t.ticketNo}</span> · {formatDate(t.createdAt)}
+                      </span>
+                    </span>
+                    <StatusBadge status={t.status} />
+                    <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <Shortcuts items={MEMBER_SHORTCUTS} />
+        <Shortcuts items={MEMBER_SHORTCUTS} className="sm:grid-cols-2 lg:grid-cols-1" />
+      </div>
     </div>
   );
 }

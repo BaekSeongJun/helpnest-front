@@ -57,7 +57,8 @@ export function FaqList({ initialKeyword = '' }: { initialKeyword?: string }) {
       </form>
 
       <Tabs value={category} onValueChange={(v) => setCategory(v as TicketCategory | typeof ALL)}>
-        <TabsList className="mb-4 h-auto flex-wrap">
+        {/* 좁은 화면에서는 줄바꿈 대신 가로 스크롤 — 알약 배경 밖으로 넘치지 않게 */}
+        <TabsList className="mb-4 max-w-full [scrollbar-width:none] justify-start overflow-x-auto">
           <TabsTrigger value={ALL}>전체</TabsTrigger>
           {Object.entries(CATEGORY_LABEL).map(([value, label]) => (
             <TabsTrigger key={value} value={value}>
