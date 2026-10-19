@@ -66,7 +66,7 @@ export function AiStep({ onConnect, connecting }: AiStepProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-card flex max-h-[28rem] min-h-64 flex-col gap-3 overflow-y-auto rounded-lg border p-4">
+      <div className="bg-card flex max-h-[28rem] min-h-64 flex-col gap-3 overflow-y-auto rounded-xl p-4">
         <Bubble role="AI">
           궁금한 점을 적어 주시면 FAQ를 바탕으로 먼저 답해 드릴게요. 상담원과 바로 이야기하려면 아래
           [상담원 연결]을 눌러 주세요.

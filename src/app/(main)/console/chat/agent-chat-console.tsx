@@ -105,7 +105,7 @@ function RoomList({
 }) {
   return (
     // 시안 A안: 상태별 묶음(상담중 → 종료) + 이니셜 아바타
-    <nav aria-label="내 채팅방" className="bg-card max-h-[40rem] overflow-y-auto rounded-lg border p-3 shadow-xs">
+    <nav aria-label="내 채팅방" className="bg-card max-h-[40rem] overflow-y-auto rounded-xl p-3">
       {(['OPEN', 'CLOSED'] as const).map((group) => {
         const items = rooms.filter((r) => (r.status === 'OPEN') === (group === 'OPEN'));
         if (items.length === 0) return null;
@@ -193,7 +193,7 @@ function RoomPanel({ room }: { room: ChatRoom }) {
 
   return (
     <section aria-label={`${room.customerName ?? '고객'} 님과의 대화`} className="flex flex-col gap-4">
-      <div className="bg-card flex flex-wrap items-start justify-between gap-3 rounded-lg border p-4 shadow-xs">
+      <div className="bg-card flex flex-wrap items-start justify-between gap-3 rounded-xl p-4">
         <div className="flex items-start gap-3">
           <span className="bg-secondary text-secondary-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
             {(room.customerName ?? '고객').slice(0, 1)}
