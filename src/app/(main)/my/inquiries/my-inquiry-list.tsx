@@ -90,7 +90,7 @@ export function MyInquiryList() {
               <li key={t.ticketId}>
                 <Link
                   href={`/my/inquiries/${t.ticketId}`}
-                  className="bg-card hover:border-primary/40 flex flex-col gap-2 rounded-lg border px-5 py-4 shadow-xs transition-colors"
+                  className="bg-card hover:bg-accent flex flex-col gap-2 rounded-xl px-5 py-4 transition-colors"
                 >
                   <span className="flex items-center justify-between gap-3">
                     <span className="truncate font-semibold">{t.title}</span>
