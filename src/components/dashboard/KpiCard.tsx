@@ -19,7 +19,7 @@ export function KpiGrid({ items }: { items: readonly Kpi[] }) {
       {items.map(({ label, value, hint, icon: Icon, ai }) => (
         <div
           key={label}
-          className="bg-card text-card-foreground flex flex-col gap-2.5 rounded-lg border p-5 shadow-xs"
+          className="bg-card text-card-foreground flex flex-col gap-2.5 rounded-xl p-5"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-muted-foreground text-sm">{label}</span>
